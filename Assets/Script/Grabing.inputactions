@@ -1,0 +1,34 @@
+{
+    "name": "Grabing",
+    "maps": [
+        {
+            "name": "Player",
+            "id": "dac5f94b-6b9f-4a3a-8bfe-ec0ebeb0e95d",
+            "actions": [
+                {
+                    "name": "Grab",
+                    "type": "Button",
+                    "id": "c2f975a1-7dfe-4d73-8fdb-951e77ee0055",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "b63f0535-fd12-4389-827e-89b9ba35fb18",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Grab",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
