@@ -2,28 +2,20 @@ using UnityEngine;
 
 public class Projectile : MonoBehaviour
 {
-    public float lifeTime = 5f;
     public int damage = 10;
+    public float lifetime = 3f;
 
     void Start()
     {
-        Destroy(gameObject, lifeTime);
-    }
-
-    void OnTriggerEnter(Collider other)
-    {
-        // Ici, tu peux vérifier si la cible est le joueur ou autre
-        Debug.Log("Projectile a touché : " + other.name);
-        Destroy(gameObject);
+        Destroy(gameObject, lifetime);
     }
 
     void OnCollisionEnter(Collision collision)
     {
-        Health health = collision.gameObject.GetComponent<Health>();
-        if (health != null)
+        if (collision.gameObject.TryGetComponent<Health>(out var health))
         {
-            health.TakeDamage(25f);
-            Destroy(gameObject); // détruire le projectile
+            health.TakeDamage(damage);
         }
+        Destroy(gameObject);
     }
 }

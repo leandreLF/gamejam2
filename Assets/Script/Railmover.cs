@@ -1,160 +1,171 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
 
+[RequireComponent(typeof(Health))]
 public class RailMover : MonoBehaviour
 {
-    [Header("Rail Points")]
-    public Transform[] railPoints;
-    public float speed = 5f;
+    // Événements statiques
+    public static event UnityAction<bool> OnFreezeStateChanged;
+    public static event UnityAction OnGameStarted;
+
+    [Header("Rail Settings")]
+    [SerializeField] private Transform[] railPoints;
+    [SerializeField] private float moveSpeed = 5f;
+    [SerializeField] private float waypointThreshold = 0.1f;
+
+    [Header("UI Settings")]
+    [SerializeField] private GameObject readyUIContainer;
+    [SerializeField] private Button readyButton;
+
+    [Header("Combat Settings")]
+    [SerializeField] private float kickDamage = 20f;
+    [SerializeField] private float kickCooldown = 1f;
+    [SerializeField] private float obstacleDetectionRange = 1f;
+    [SerializeField] private LayerMask obstacleLayer;
+
+    // Références internes
+    private Health health;
+    private Animator animator;
     private int currentPointIndex = 0;
-
-    [Header("State")]
-    public bool isFrozen = true;
     private bool isMoving = false;
-
-    [Header("Kick Settings")]
-    public float kickDamage = 20f;
-    public float kickCooldown = 1f;
-    public float obstacleDetectionDistance = 1f;
-    public LayerMask obstacleLayer;
     private bool canKick = true;
 
-    [Header("UI")]
-    public Button readyButton;
+    // Propriétés
+    public bool IsFrozen { get; private set; } = true;
 
-    [Header("Animation")]
-    public Animator animator;
-
-    [Header("Gizmos")]
-    public Color gizmoColor = Color.green;
-    public float gizmoSphereRadius = 0.2f;
-
-    void Start()
+    void Awake()
     {
-        if (readyButton != null)
-            readyButton.onClick.AddListener(Ready);
+        health = GetComponent<Health>();
+        animator = GetComponent<Animator>();
 
-        UpdateAnimator();
+        // Initialisation sécurisée
+        if (readyButton == null || readyUIContainer == null)
+        {
+            Debug.LogError("UI references missing in RailMover!", this);
+            enabled = false;
+            return;
+        }
+
+        readyButton.onClick.AddListener(OnReadyPressed);
+        health.OnDeath += OnPlayerDeath;
     }
 
     void Update()
     {
-        if (!isMoving || isFrozen || currentPointIndex >= railPoints.Length)
+        if (IsFrozen || !isMoving) return;
+
+        HandleMovement();
+        HandleObstacleDetection();
+    }
+
+    void HandleMovement()
+    {
+        if (currentPointIndex >= railPoints.Length)
         {
-            UpdateAnimator();
+            EndPath();
             return;
         }
 
-        if (DetectObstacle())
-        {
-            Freeze();
-            Kick();
-            return;
-        }
+        Transform target = railPoints[currentPointIndex];
+        transform.position = Vector3.MoveTowards(transform.position, target.position, moveSpeed * Time.deltaTime);
 
-        Transform targetPoint = railPoints[currentPointIndex];
-        transform.position = Vector3.MoveTowards(transform.position, targetPoint.position, speed * Time.deltaTime);
-
-        if (Vector3.Distance(transform.position, targetPoint.position) < 0.1f)
+        if (Vector3.Distance(transform.position, target.position) <= waypointThreshold)
         {
             currentPointIndex++;
-            if (currentPointIndex >= railPoints.Length)
+        }
+    }
+
+    void HandleObstacleDetection()
+    {
+        if (!canKick) return;
+
+        if (Physics.Raycast(transform.position, transform.forward, out var hit, obstacleDetectionRange, obstacleLayer))
+        {
+            PerformKick();
+            if (hit.transform.TryGetComponent<Health>(out var enemyHealth))
             {
-                isMoving = false;
-                ResetPlayer(); // Réinitialiser l'état et réafficher le bouton
+                enemyHealth.TakeDamage(kickDamage);
             }
         }
-
-        UpdateAnimator();
     }
 
-    public void Ready()
+    void PerformKick()
     {
-        isFrozen = false;
+        canKick = false;
+        animator?.SetTrigger("Kick");
+        Invoke(nameof(ResetKick), kickCooldown);
+    }
+
+    void ResetKick() => canKick = true;
+
+    void OnReadyPressed()
+    {
+        readyUIContainer.SetActive(false);
+        StartMovement();
+    }
+
+    void StartMovement()
+    {
+        IsFrozen = false;
         isMoving = true;
-        if (readyButton != null)
-            readyButton.gameObject.SetActive(false);
+        OnFreezeStateChanged?.Invoke(false);
+        OnGameStarted?.Invoke();
         UpdateAnimator();
     }
 
-    public void Freeze()
+    void OnPlayerDeath()
     {
-        isFrozen = true;
-        isMoving = false;
-        UpdateAnimator();
+        ResetPlayer();
     }
 
     public void ResetPlayer()
     {
         currentPointIndex = 0;
         transform.position = railPoints[0].position;
-        isFrozen = true;
+        IsFrozen = true;
         isMoving = false;
 
-        if (readyButton != null)
-            readyButton.gameObject.SetActive(true); // Réaffiche le bouton
-
+        readyUIContainer.SetActive(true);
+        health.ResetHealth();
         UpdateAnimator();
     }
 
-    public void Kick()
+    void EndPath()
     {
-        if (!canKick) return;
-
-        animator?.SetTrigger("isKicking");
-        canKick = false;
-
-        // Ici, tu pourrais appliquer des dégâts à l’obstacle si nécessaire
-
-        Invoke(nameof(ResetKick), kickCooldown);
+        isMoving = false;
+        Debug.Log("Path completed!");
     }
 
-    void ResetKick()
-    {
-        canKick = true;
-    }
-
-    private bool DetectObstacle()
-    {
-        RaycastHit hit;
-        return Physics.Raycast(transform.position, transform.forward, out hit, obstacleDetectionDistance, obstacleLayer);
-    }
-
-    private void UpdateAnimator()
+    void UpdateAnimator()
     {
         if (animator == null) return;
-
-        bool walking = isMoving && !isFrozen;
-        bool standing = isFrozen;
-
-        animator.SetBool("isMoving", walking);
-        animator.SetBool("isStanding", standing);
-
-        // isKicking est un Trigger
+        animator.SetBool("IsMoving", isMoving && !IsFrozen);
     }
 
-    void OnDrawGizmos()
+    void OnDestroy()
     {
-        if (railPoints == null || railPoints.Length == 0)
-            return;
+        health.OnDeath -= OnPlayerDeath;
+        if (readyButton != null)
+            readyButton.onClick.RemoveListener(OnReadyPressed);
+    }
 
-        Gizmos.color = gizmoColor;
-
+#if UNITY_EDITOR
+    void OnDrawGizmosSelected()
+    {
+        // Visualisation du rail
+        Gizmos.color = Color.blue;
         for (int i = 0; i < railPoints.Length; i++)
         {
-            if (railPoints[i] != null)
-            {
-                Gizmos.DrawSphere(railPoints[i].position, gizmoSphereRadius);
-
-                if (i < railPoints.Length - 1 && railPoints[i + 1] != null)
-                {
-                    Gizmos.DrawLine(railPoints[i].position, railPoints[i + 1].position);
-                }
-            }
+            if (railPoints[i] == null) continue;
+            Gizmos.DrawSphere(railPoints[i].position, 0.2f);
+            if (i < railPoints.Length - 1 && railPoints[i+1] != null)
+                Gizmos.DrawLine(railPoints[i].position, railPoints[i+1].position);
         }
 
-        // Raycast obstacle
+        // Visualisation de la détection
         Gizmos.color = Color.red;
-        Gizmos.DrawRay(transform.position, transform.forward * obstacleDetectionDistance);
+        Gizmos.DrawRay(transform.position, transform.forward * obstacleDetectionRange);
     }
+#endif
 }

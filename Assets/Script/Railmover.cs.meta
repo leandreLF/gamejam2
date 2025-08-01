@@ -1,2 +1,13 @@
 fileFormatVersion: 2
 guid: 3d8483d590ee7a3439faa2d4c4b815fe
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - readyUIContainer: {fileID: 6549337721410625699, guid: 91455412d40ffb24194565ab8124ae31, type: 3}
+  - readyButton: {fileID: 2065189738112386583, guid: 4fbb8ab00492bcf49ac533f9167150be, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
