@@ -30,6 +30,7 @@ public class TurretEnemy : MonoBehaviour
     void Start()
     {
         RailMover.OnGameStarted += ActivateTurret;
+        Health.OnPlayerDied += OnPlayerDied;
 
         // Initialisation de l'animator si non assigné
         if (animator == null)
@@ -80,7 +81,26 @@ public class TurretEnemy : MonoBehaviour
 
     void FindTarget()
     {
-        currentTarget = GameObject.FindGameObjectWithTag(targetTag)?.transform;
+        if (currentTarget != null && currentTarget.gameObject.activeInHierarchy)
+            return;
+
+        GameObject player = GameObject.FindGameObjectWithTag(targetTag);
+        if (player != null && player.activeInHierarchy)
+        {
+            Health playerHealth = player.GetComponent<Health>();
+            if (playerHealth != null && !playerHealth.isDead)
+            {
+                currentTarget = player.transform;
+            }
+            else
+            {
+                currentTarget = null;
+            }
+        }
+        else
+        {
+            currentTarget = null;
+        }
     }
 
     bool HasLineOfSight(Transform target)
@@ -129,11 +149,22 @@ public class TurretEnemy : MonoBehaviour
     void OnDestroy()
     {
         RailMover.OnGameStarted -= ActivateTurret;
+        Health.OnPlayerDied -= OnPlayerDied;
     }
 
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, detectionRange);
+    }
+    private void OnPlayerDied(GameObject playerObject)
+    {
+        // Vérifie si la cible morte est notre cible actuelle
+        if (currentTarget != null && currentTarget.gameObject == playerObject)
+        {
+            Debug.Log("Player died, clearing target");
+            currentTarget = null;
+            isActive = false; // Désactive la tourelle
+        }
     }
 }

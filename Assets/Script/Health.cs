@@ -1,9 +1,11 @@
 using UnityEngine;
+using System;
 
 public class Health : MonoBehaviour
 {
     [SerializeField] private float _maxHealth = 100f;
     private float _currentHealth;
+    public static event Action<GameObject> OnPlayerDied;
 
     public bool isDead { get; private set; } = false;
 
@@ -59,17 +61,6 @@ public class Health : MonoBehaviour
         CheckInitialHealth();
     }
 
-    private void Die()
-    {
-        if (isDead) return;
-
-        isDead = true;
-        UpdateAnimator();
-        OnDeath?.Invoke();
-
-        SetAttachedPartsActive(false);
-        Destroy(gameObject, 0.6f);
-    }
 
     // MODIFICATION PRINCIPALE ICI
     private void UpdateAnimator()
@@ -92,4 +83,20 @@ public class Health : MonoBehaviour
             }
         }
     }
-}
+    private void Die()
+    {
+        if (isDead) return;
+
+        isDead = true;
+        UpdateAnimator();
+
+        // Notifie tous les ennemis de la mort
+        OnPlayerDied?.Invoke(gameObject);
+
+        OnDeath?.Invoke();
+        SetAttachedPartsActive(false);
+
+        // Détruire l'objet après un délai
+        Destroy(gameObject, 3f);
+    }
+ }
