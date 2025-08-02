@@ -2,32 +2,66 @@ using UnityEngine;
 
 public class CheckpointSystem : MonoBehaviour
 {
-    public static CheckpointSystem Instance;
+    [Header("Checkpoint Settings")]
+    public Transform checkpointTransform;
+    public GameObject activatedVisual;
+    public GameObject deactivatedVisual;
+    public AudioClip activationSound;
+    public ParticleSystem activationParticles;
 
-    void Awake()
+    private bool isActivated = false; // Déclaration correcte de la variable
+
+    private void Start()
     {
-        if (Instance == null)
+        UpdateVisuals();
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (!isActivated && other.CompareTag("Player"))
         {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
+            ActivateCheckpoint(other);
         }
     }
 
-    public void ActivateCheckpoint(Transform checkpointTransform)
+    private void ActivateCheckpoint(Collider player)
     {
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
+        isActivated = true;
+        UpdateVisuals();
+
+        if (activationSound != null)
         {
-            PlayerRespawn respawn = player.GetComponent<PlayerRespawn>();
-            if (respawn != null)
-            {
-                respawn.SetSpawnPoint(checkpointTransform); // Appel correct de la méthode
-                Debug.Log("New checkpoint set at: " + checkpointTransform.position);
-            }
+            AudioSource.PlayClipAtPoint(activationSound, transform.position);
         }
+
+        if (activationParticles != null)
+        {
+            activationParticles.Play();
+        }
+
+        PlayerRespawn playerRespawn = player.GetComponentInParent<PlayerRespawn>();
+        if (playerRespawn != null)
+        {
+            playerRespawn.SetSpawnPoint(checkpointTransform);
+        }
+    }
+
+    private void UpdateVisuals()
+    {
+        if (activatedVisual != null)
+        {
+            activatedVisual.SetActive(isActivated);
+        }
+
+        if (deactivatedVisual != null)
+        {
+            deactivatedVisual.SetActive(!isActivated);
+        }
+    }
+
+    public void ResetCheckpoint()
+    {
+        isActivated = false;
+        UpdateVisuals();
     }
 }

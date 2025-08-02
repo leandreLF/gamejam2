@@ -14,8 +14,10 @@ public class RailMover : MonoBehaviour
     [SerializeField] private float waypointThreshold = 0.1f;
 
     [Header("UI Settings")]
-    [SerializeField] private GameObject readyUIContainer;
-    [SerializeField] private Button readyButton;
+    [SerializeField] private string readyUIContainerName = "ReadyUIContainer";
+    [SerializeField] private string readyButtonName = "ReadyButton";
+    private GameObject readyUIContainer;
+    private Button readyButton;
 
     [Header("Combat Settings")]
     [SerializeField] private float kickDamage = 20f;
@@ -36,15 +38,32 @@ public class RailMover : MonoBehaviour
         health = GetComponent<Health>();
         animator = GetComponent<Animator>();
 
-        if (readyButton == null || readyUIContainer == null)
+        FindUIElements();
+        health.OnDeath += OnPlayerDeath;
+    }
+
+    private void FindUIElements()
+    {
+        // Recherche dynamique des éléments UI
+        if (readyUIContainer == null)
         {
-            Debug.LogError("UI references missing in RailMover!", this);
-            enabled = false;
-            return;
+            readyUIContainer = GameObject.Find(readyUIContainerName);
         }
 
-        readyButton.onClick.AddListener(OnReadyPressed);
-        health.OnDeath += OnPlayerDeath;
+        if (readyButton == null)
+        {
+            GameObject buttonObj = GameObject.Find(readyButtonName);
+            if (buttonObj != null) readyButton = buttonObj.GetComponent<Button>();
+        }
+
+        if (readyButton != null && readyUIContainer != null)
+        {
+            readyButton.onClick.AddListener(OnReadyPressed);
+        }
+        else
+        {
+            Debug.LogWarning("UI elements not found dynamically. Game may not function properly.");
+        }
     }
 
     void Update()
@@ -109,12 +128,24 @@ public class RailMover : MonoBehaviour
 
     void OnReadyPressed()
     {
+        if (RoomManager.Instance != null)
+        {
+            RoomManager.Instance.ResetCurrentRoom();
+        }
+        else
+        {
+            Debug.LogWarning("RoomManager instance not found!");
+        }
         if (health != null && health.isDead)
         {
             health.ResetHealth();
         }
 
-        readyUIContainer.SetActive(false);
+        if (readyUIContainer != null)
+        {
+            readyUIContainer.SetActive(false);
+        }
+
         StartMovement();
     }
 
@@ -132,10 +163,9 @@ public class RailMover : MonoBehaviour
         IsFrozen = true;
         isMoving = false;
 
-        // Déclencher l'animation de mort
         if (animator != null)
         {
-            animator.SetTrigger("Die"); // Utilisez le même nom que dans Health.cs
+            animator.SetTrigger("Die");
         }
 
         UpdateAnimator();
@@ -173,14 +203,17 @@ public class RailMover : MonoBehaviour
             transform.position = railPoints[0].position;
         }
 
+        FindUIElements();
+
         if (readyUIContainer != null)
         {
             readyUIContainer.SetActive(true);
-            if (readyButton != null)
-            {
-                readyButton.onClick.RemoveAllListeners();
-                readyButton.onClick.AddListener(OnReadyPressed);
-            }
+        }
+
+        if (readyButton != null)
+        {
+            readyButton.onClick.RemoveAllListeners();
+            readyButton.onClick.AddListener(OnReadyPressed);
         }
 
         UpdateAnimator();

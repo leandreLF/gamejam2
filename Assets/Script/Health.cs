@@ -99,4 +99,8 @@ public class Health : MonoBehaviour
 
         gameObject.SetActive(false);
     }
+    public void Revive()
+    {
+        _isDead = false;
+    }
 }

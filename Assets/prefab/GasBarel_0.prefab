@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 681337565717142816}
   - component: {fileID: -5324502236960320681}
   - component: {fileID: -7681203733684937869}
+  - component: {fileID: -2781557161529532656}
   m_Layer: 9
   m_Name: GasBarel_0
   m_TagString: enemy
@@ -105,6 +106,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d034ebeccba728d428f1fdfddf4a1e78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  explosionRadius: 5
+  explosionDamage: 100
+  explosionForce: 0
+  explosionAffectedLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  explosionEffect: {fileID: 0}
 --- !u!114 &2624753979357166283
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -118,6 +126,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _maxHealth: 50
+  deathDelay: 1
+  deathTrigger: Die
 --- !u!114 &3188348091298565178
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -205,3 +215,15 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
+--- !u!114 &-2781557161529532656
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1906889899944661791}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cc404196ea148440a1f3886b3b9faa0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

@@ -28,7 +28,7 @@ Transform:
   m_GameObject: {fileID: 835158918432664523}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.033, y: 0.048, z: 0.012}
+  m_LocalPosition: {x: -0.089, y: 0.008, z: -0.014}
   m_LocalScale: {x: 0.5669726, y: 0.5669726, z: 0.5669726}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -123,16 +123,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5d7cafd1b2bc2c4cbbeb466e5399f17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetTag: enemy
+  targetTags:
+  - enemy
   detectionRange: 15
   obstacleLayers:
     serializedVersion: 2
     m_Bits: 0
-  aimingAngle: 360
+  aimingAngle: 180
+  targetRefreshRate: 0.5
   projectilePrefab: {fileID: 6952947874221999873, guid: 7c031d318f656ef47bf114b26d94d1f4, type: 3}
   firePoint: {fileID: 8669165893142612122}
   fireRate: 1
-  projectileSpeed: 50
+  projectileSpeed: 40
   muzzleFlash: {fileID: 0}
   animator: {fileID: 0}
   shootingAnimDuration: 0.3
@@ -151,6 +153,7 @@ GameObject:
   - component: {fileID: 8413549187737581762}
   - component: {fileID: 6498747515720992562}
   - component: {fileID: 7265036295347369396}
+  - component: {fileID: 2374347730425998323}
   m_Layer: 0
   m_Name: Bob
   m_TagString: Player
@@ -241,10 +244,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1261670f0d10d644aad77228086ea5fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _maxHealth: 100
-  animator: {fileID: 0}
-  attachedParts:
-  - {fileID: 835158918432664523}
+  _maxHealth: 50
+  deathDelay: 0.8
+  deathTrigger: Die
 --- !u!114 &4487247045222142426
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -258,13 +260,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   railPoints:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  moveSpeed: 5
-  waypointThreshold: 0.1
-  readyUIContainer: {fileID: 0}
-  readyButton: {fileID: 0}
+  - {fileID: 6438693864098633008, guid: 846b61c487bfe0c4f836b548baa4358c, type: 3}
+  - {fileID: 1565451349597951567, guid: e578cf129c1c63443aa4eea3177a9b4b, type: 3}
+  moveSpeed: 2
+  waypointThreshold: 1
+  readyUIContainerName: ReadyUIContainer
+  readyButtonName: ReadyButton
   kickDamage: 20
   kickCooldown: 1
   obstacleDetectionRange: 1
@@ -312,8 +313,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.21221974, y: 0.33689532, z: 0.07167656}
-  m_Center: {x: 0.00052465464, y: -0.031552505, z: -0.004939805}
+  m_Size: {x: 0.11697391, y: 0.33689532, z: 0.14596559}
+  m_Center: {x: 0.04814752, y: -0.031552505, z: -0.016613672}
 --- !u!54 &7265036295347369396
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -341,3 +342,15 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
+--- !u!114 &2374347730425998323
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2582488905179503901}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae1592bcae463e6498af334d2e5b5aca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

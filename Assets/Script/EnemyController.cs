@@ -3,60 +3,112 @@ using UnityEngine.AI;
 
 public class EnemyController : MonoBehaviour
 {
+    [Header("Enemy Settings")]
+    public float patrolRange = 5f;
+    public float moveSpeed = 3f;
+    public float detectionRadius = 10f;
+
     private NavMeshAgent navAgent;
+    private Health health;
+    private Animator animator;
     private Vector3 initialPosition;
     private Quaternion initialRotation;
-    private Health health;
+    private bool isDead = false;
 
-    void Awake()
+    void Start()
     {
         navAgent = GetComponent<NavMeshAgent>();
         health = GetComponent<Health>();
+        animator = GetComponent<Animator>();
 
-        // Sauvegarder la position et rotation initiales
         initialPosition = transform.position;
         initialRotation = transform.rotation;
+
+        if (navAgent != null)
+        {
+            navAgent.speed = moveSpeed;
+        }
+
+        health.OnDeath += HandleDeath;
+    }
+
+    void Update()
+    {
+        if (isDead) return;
+
+        PatrolBehavior();
+    }
+
+    private void PatrolBehavior()
+    {
+        if (navAgent == null || navAgent.remainingDistance < 0.5f)
+        {
+            Vector3 randomPoint = initialPosition + Random.insideUnitSphere * patrolRange;
+            NavMeshHit hit;
+            if (NavMesh.SamplePosition(randomPoint, out hit, patrolRange, NavMesh.AllAreas))
+            {
+                if (navAgent != null) navAgent.SetDestination(hit.position);
+            }
+        }
+    }
+
+    private void HandleDeath()
+    {
+        isDead = true;
+        if (navAgent != null) navAgent.isStopped = true;
+        if (animator != null) animator.SetTrigger("Die");
     }
 
     public void ResetEnemy()
     {
-        // Réinitialiser l'agent de navigation
+        isDead = false;
+
+        // Réinitialisation physique
         if (navAgent != null)
         {
             navAgent.Warp(initialPosition);
-            navAgent.ResetPath();
+            navAgent.isStopped = false;
         }
         else
         {
             transform.position = initialPosition;
         }
 
-        // Réinitialiser la rotation
         transform.rotation = initialRotation;
 
-        // Réinitialiser la santé si disponible
+        // Réinitialisation santé
         if (health != null)
         {
             health.ResetHealth();
         }
 
-        // Réactiver l'objet
-        gameObject.SetActive(true);
+        // Réinitialisation animation
+        ResetEnemyState();
     }
 
+    // NOUVELLE MÉTHODE
+    public void ResetEnemyState()
+    {
+        if (animator != null)
+        {
+            animator.Rebind();
+            animator.Update(0f);
+            animator.SetBool("isDead", false);
+            animator.SetTrigger("Idle");
+        }
+    }
     public void RetreatFrom(Vector3 position)
     {
-        Vector3 retreatDirection = (transform.position - position).normalized;
-        Vector3 retreatPosition = transform.position + retreatDirection * 3f;
+        if (navAgent != null)
+        {
+            Vector3 direction = (transform.position - position).normalized;
+            Vector3 retreatPosition = transform.position + direction * 5f; // Ajuste la distance si nécessaire
 
-        // Utiliser le NavMeshAgent si disponible
-        if (navAgent != null && navAgent.isActiveAndEnabled)
-        {
-            navAgent.SetDestination(retreatPosition);
-        }
-        else
-        {
-            transform.position = retreatPosition;
+            NavMeshHit hit;
+            if (NavMesh.SamplePosition(retreatPosition, out hit, 5f, NavMesh.AllAreas))
+            {
+                navAgent.SetDestination(hit.position);
+            }
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class TurretEnemy : MonoBehaviour
 {
     [Header("Targeting")]
-    public string[] targetTags = { "Player", "Enemy" }; // Tags multiples
+    public string[] targetTags = { "Player", "enemy" }; // Tags multiples
     public float detectionRange = 15f;
     public LayerMask obstacleLayers;
     public float aimingAngle = 45f;
@@ -48,7 +48,7 @@ public class TurretEnemy : MonoBehaviour
 
         UpdateShootingState();
 
-        // Actualiser la liste des cibles � intervalle r�gulier
+        // Actualiser la liste des cibles à intervalle régulier
         if (Time.time - lastTargetRefreshTime > targetRefreshRate)
         {
             RefreshTargetList();
@@ -101,7 +101,7 @@ public class TurretEnemy : MonoBehaviour
 
     void FindTarget()
     {
-        // Si on a d�j� une cible valide, on la garde
+        // Si on a déjà une cible valide, on la garde
         if (currentTarget != null && IsValidTarget(currentTarget.gameObject))
             return;
 
@@ -129,6 +129,10 @@ public class TurretEnemy : MonoBehaviour
         if (target == null || !target.activeInHierarchy)
             return false;
 
+        // Ne pas se cibler soi-même
+        if (target == gameObject || target.transform.IsChildOf(transform))
+            return false;
+
         Health targetHealth = target.GetComponent<Health>();
         return targetHealth != null && !targetHealth.isDead;
     }
@@ -143,7 +147,7 @@ public class TurretEnemy : MonoBehaviour
 
         Debug.DrawRay(firePoint.position, direction * distance, Color.yellow, 0.1f);
 
-        // V�rifie s'il y a une ligne de vue directe
+        // Vérifie s'il y a une ligne de vue directe
         return !Physics.Raycast(firePoint.position, direction, distance, obstacleLayers);
     }
 
@@ -164,9 +168,13 @@ public class TurretEnemy : MonoBehaviour
             Quaternion.LookRotation(currentTarget.position - firePoint.position)
         );
 
+        // Ajouter le script de gestion de propriétaire
+        ProjectileOwner projectileOwner = projectile.AddComponent<ProjectileOwner>();
+        projectileOwner.owner = gameObject;
+        projectileOwner.ownerParent = transform.parent != null ? transform.parent.gameObject : null;
+
         if (projectile.TryGetComponent<Rigidbody>(out var rb))
         {
-            // CORRECTION: Utiliser rb.velocity au lieu de rb.linearVelocity
             rb.linearVelocity = (currentTarget.position - firePoint.position).normalized * projectileSpeed;
         }
 
@@ -193,16 +201,66 @@ public class TurretEnemy : MonoBehaviour
 
     private void OnEntityDied(GameObject entity)
     {
-        // Si l'entit� morte est notre cible actuelle, on la retire
+        // Si l'entité morte est notre cible actuelle, on la retire
         if (currentTarget != null && currentTarget.gameObject == entity)
         {
             currentTarget = null;
         }
 
-        // Retirer l'entit� morte de la liste des cibles potentielles
+        // Retirer l'entité morte de la liste des cibles potentielles
         if (potentialTargets.Contains(entity))
         {
             potentialTargets.Remove(entity);
         }
+    }
+}
+
+// Nouveau script à ajouter dans le même fichier
+public class ProjectileOwner : MonoBehaviour
+{
+    public GameObject owner;        // L'objet qui a tiré (la Main)
+    public GameObject ownerParent;  // Le parent de l'objet qui a tiré (Bob)
+
+    void Start()
+    {
+        // Ignore les collisions avec le propriétaire et son parent
+        if (owner != null)
+        {
+            IgnoreCollisions(owner);
+        }
+
+        if (ownerParent != null)
+        {
+            IgnoreCollisions(ownerParent);
+        }
+    }
+
+    private void IgnoreCollisions(GameObject target)
+    {
+        Collider projectileCollider = GetComponent<Collider>();
+        if (projectileCollider == null) return;
+
+        Collider[] targetColliders = target.GetComponentsInChildren<Collider>();
+        foreach (Collider col in targetColliders)
+        {
+            if (col != null && col.enabled)
+            {
+                Physics.IgnoreCollision(projectileCollider, col);
+            }
+        }
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        // Ne pas détruire le projectile s'il touche le propriétaire ou son parent
+        if (collision.gameObject == owner || collision.gameObject == ownerParent ||
+            collision.transform.IsChildOf(owner.transform) ||
+            (ownerParent != null && collision.transform.IsChildOf(ownerParent.transform)))
+        {
+            return;
+        }
+
+        // Détruire le projectile après collision avec d'autres objets
+        Destroy(gameObject);
     }
 }

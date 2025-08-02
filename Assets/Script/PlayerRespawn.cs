@@ -1,48 +1,44 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Health))]
 public class PlayerRespawn : MonoBehaviour
 {
-    private Vector3 spawnPosition;
-    private Quaternion spawnRotation;
     private Health health;
+    private RailMover railMover;
+    private Transform currentSpawnPoint;
 
     void Start()
     {
         health = GetComponent<Health>();
-        SetSpawnPoint(transform.position, transform.rotation);
+        railMover = GetComponent<RailMover>();
+        currentSpawnPoint = transform;
+        health.OnDeath += HandleDeath;
+    }
+
+    void OnDestroy()
+    {
+        if (health != null) health.OnDeath -= HandleDeath;
+    }
+
+    private void HandleDeath()
+    {
+        if (GameOverUI.Instance != null) GameOverUI.Instance.ShowGameOver();
     }
 
     public void SetSpawnPoint(Transform newSpawnPoint)
     {
-        if (newSpawnPoint != null)
-        {
-            spawnPosition = newSpawnPoint.position;
-            spawnRotation = newSpawnPoint.rotation;
-        }
+        currentSpawnPoint = newSpawnPoint;
     }
 
-    public void SetSpawnPoint(Vector3 position, Quaternion rotation)
+    public void ResetPlayer()
     {
-        spawnPosition = position;
-        spawnRotation = rotation;
-    }
-
-    public void Respawn()
-    {
-        // Réinitialiser la santé
-        if (health != null)
+        if (currentSpawnPoint != null)
         {
-            // Utilisez ResetHealth() au lieu de Heal()
-            health.ResetHealth();
+            transform.position = currentSpawnPoint.position;
+            transform.rotation = currentSpawnPoint.rotation;
         }
 
-        transform.SetPositionAndRotation(spawnPosition, spawnRotation);
-
-        // Réinitialiser le RailMover
-        RailMover railMover = GetComponent<RailMover>();
-        if (railMover != null)
-        {
-            railMover.ResetPlayer();
-        }
+        if (health != null) health.ResetHealth();
+        if (railMover != null) railMover.ResetPlayer();
     }
 }

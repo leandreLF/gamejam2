@@ -154,4 +154,36 @@ public class GameManager : MonoBehaviour
             }
         }
     }
+    public void UpdateInitialStatesOfResettableObjects()
+    {
+        foreach (var item in items)
+        {
+            if (item != null)
+            {
+                ResettableObject resettable = item.GetComponent<ResettableObject>();
+                if (resettable != null)
+                    resettable.UpdateInitialStateToCurrent();
+            }
+        }
+
+        foreach (var barrel in barrels)
+        {
+            if (barrel != null)
+            {
+                ResettableObject resettable = barrel.GetComponent<ResettableObject>();
+                if (resettable != null)
+                    resettable.UpdateInitialStateToCurrent();
+            }
+        }
+
+        foreach (var enemy in enemies)
+        {
+            if (enemy != null)
+            {
+                ResettableObject resettable = enemy.GetComponent<ResettableObject>();
+                if (resettable != null)
+                    resettable.UpdateInitialStateToCurrent();
+            }
+        }
+    }
 }
