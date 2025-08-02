@@ -1,12 +1,14 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class TurretEnemy : MonoBehaviour
 {
     [Header("Targeting")]
-    public string targetTag = "Player";
+    public string[] targetTags = { "Player", "Enemy" }; // Tags multiples
     public float detectionRange = 15f;
     public LayerMask obstacleLayers;
     public float aimingAngle = 45f;
+    [SerializeField] private float targetRefreshRate = 0.5f; // Actualisation des cibles
 
     [Header("Combat")]
     public GameObject projectilePrefab;
@@ -26,7 +28,8 @@ public class TurretEnemy : MonoBehaviour
     private bool isActive = false;
     private bool isShooting = false;
     private float shootingEndTime;
-    private GameObject playerObject;
+    private float lastTargetRefreshTime;
+    private List<GameObject> potentialTargets = new List<GameObject>();
 
     void Start()
     {
@@ -36,7 +39,7 @@ public class TurretEnemy : MonoBehaviour
         if (animator == null)
             animator = GetComponent<Animator>();
 
-        playerObject = GameObject.FindGameObjectWithTag(targetTag);
+        RefreshTargetList();
     }
 
     void Update()
@@ -44,6 +47,14 @@ public class TurretEnemy : MonoBehaviour
         if (!isActive) return;
 
         UpdateShootingState();
+
+        // Actualiser la liste des cibles � intervalle r�gulier
+        if (Time.time - lastTargetRefreshTime > targetRefreshRate)
+        {
+            RefreshTargetList();
+            lastTargetRefreshTime = Time.time;
+        }
+
         FindTarget();
 
         if (currentTarget == null) return;
@@ -52,6 +63,17 @@ public class TurretEnemy : MonoBehaviour
         {
             Fire();
             nextFireTime = Time.time + 1f / fireRate;
+        }
+    }
+
+    void RefreshTargetList()
+    {
+        potentialTargets.Clear();
+
+        foreach (string tag in targetTags)
+        {
+            GameObject[] taggedObjects = GameObject.FindGameObjectsWithTag(tag);
+            potentialTargets.AddRange(taggedObjects);
         }
     }
 
@@ -79,31 +101,36 @@ public class TurretEnemy : MonoBehaviour
 
     void FindTarget()
     {
-        if (playerObject == null)
-        {
-            playerObject = GameObject.FindGameObjectWithTag(targetTag);
-            if (playerObject == null) return;
-        }
-
-        if (currentTarget != null && currentTarget.gameObject.activeInHierarchy)
+        // Si on a d�j� une cible valide, on la garde
+        if (currentTarget != null && IsValidTarget(currentTarget.gameObject))
             return;
 
-        if (playerObject.activeInHierarchy)
+        currentTarget = null;
+        float closestDistance = Mathf.Infinity;
+
+        foreach (GameObject target in potentialTargets)
         {
-            Health playerHealth = playerObject.GetComponent<Health>();
-            if (playerHealth != null && !playerHealth.isDead)
+            if (target == null) continue;
+
+            if (IsValidTarget(target))
             {
-                currentTarget = playerObject.transform;
-            }
-            else
-            {
-                currentTarget = null;
+                float distance = Vector3.Distance(transform.position, target.transform.position);
+                if (distance < closestDistance && distance <= detectionRange)
+                {
+                    closestDistance = distance;
+                    currentTarget = target.transform;
+                }
             }
         }
-        else
-        {
-            currentTarget = null;
-        }
+    }
+
+    bool IsValidTarget(GameObject target)
+    {
+        if (target == null || !target.activeInHierarchy)
+            return false;
+
+        Health targetHealth = target.GetComponent<Health>();
+        return targetHealth != null && !targetHealth.isDead;
     }
 
     bool HasLineOfSight(Transform target)
@@ -116,6 +143,7 @@ public class TurretEnemy : MonoBehaviour
 
         Debug.DrawRay(firePoint.position, direction * distance, Color.yellow, 0.1f);
 
+        // V�rifie s'il y a une ligne de vue directe
         return !Physics.Raycast(firePoint.position, direction, distance, obstacleLayers);
     }
 
@@ -138,6 +166,7 @@ public class TurretEnemy : MonoBehaviour
 
         if (projectile.TryGetComponent<Rigidbody>(out var rb))
         {
+            // CORRECTION: Utiliser rb.velocity au lieu de rb.linearVelocity
             rb.linearVelocity = (currentTarget.position - firePoint.position).normalized * projectileSpeed;
         }
 
@@ -154,14 +183,26 @@ public class TurretEnemy : MonoBehaviour
     {
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, detectionRange);
+
+        if (currentTarget != null)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawLine(transform.position, currentTarget.position);
+        }
     }
 
     private void OnEntityDied(GameObject entity)
     {
-        if (currentTarget != null && currentTarget.gameObject == playerObject)
+        // Si l'entit� morte est notre cible actuelle, on la retire
+        if (currentTarget != null && currentTarget.gameObject == entity)
         {
             currentTarget = null;
-            isActive = false;
+        }
+
+        // Retirer l'entit� morte de la liste des cibles potentielles
+        if (potentialTargets.Contains(entity))
+        {
+            potentialTargets.Remove(entity);
         }
     }
 }
