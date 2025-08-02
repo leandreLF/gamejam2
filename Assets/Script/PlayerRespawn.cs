@@ -9,10 +9,9 @@ public class PlayerRespawn : MonoBehaviour
     void Start()
     {
         health = GetComponent<Health>();
-        SetSpawnPoint(transform.position, transform.rotation); // Initialise avec la position de départ
+        SetSpawnPoint(transform.position, transform.rotation);
     }
 
-    // Nouvelle méthode avec paramètre Transform
     public void SetSpawnPoint(Transform newSpawnPoint)
     {
         if (newSpawnPoint != null)
@@ -22,7 +21,6 @@ public class PlayerRespawn : MonoBehaviour
         }
     }
 
-    // Méthode existante avec position + rotation
     public void SetSpawnPoint(Vector3 position, Quaternion rotation)
     {
         spawnPosition = position;
@@ -31,10 +29,20 @@ public class PlayerRespawn : MonoBehaviour
 
     public void Respawn()
     {
-        transform.SetPositionAndRotation(spawnPosition, spawnRotation);
-        health.Heal(health.maxHealth);
+        // Réinitialiser la santé
+        if (health != null)
+        {
+            // Utilisez ResetHealth() au lieu de Heal()
+            health.ResetHealth();
+        }
 
-        // Effet visuel optionnel
-        Debug.Log("Player respawned at: " + spawnPosition);
+        transform.SetPositionAndRotation(spawnPosition, spawnRotation);
+
+        // Réinitialiser le RailMover
+        RailMover railMover = GetComponent<RailMover>();
+        if (railMover != null)
+        {
+            railMover.ResetPlayer();
+        }
     }
 }

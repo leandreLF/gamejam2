@@ -1,102 +1,102 @@
 using UnityEngine;
 using System;
+using System.Collections;
 
 public class Health : MonoBehaviour
 {
     [SerializeField] private float _maxHealth = 100f;
+    [SerializeField] private float deathDelay = 1f;
+    [SerializeField] private string deathTrigger = "Die";
     private float _currentHealth;
-    public static event Action<GameObject> OnPlayerDied;
-
-    public bool isDead { get; private set; } = false;
+    private bool _isDead;
+    private Animator animator;
 
     public float maxHealth => _maxHealth;
     public float currentHealth => _currentHealth;
+    public bool isDead => _isDead;
 
-    [SerializeField] private Animator animator;
-    [SerializeField] private GameObject[] attachedParts;
-
-    public event System.Action OnDeath;
+    public event Action OnDeath;
+    public static event Action<GameObject> OnAnyEntityDied;
 
     void Start()
     {
         _currentHealth = _maxHealth;
-        if (animator == null) animator = GetComponent<Animator>();
-        CheckInitialHealth();
-    }
-
-    private void CheckInitialHealth()
-    {
-        if (_currentHealth <= 0 && !isDead)
-        {
-            Die();
-        }
-        else
-        {
-            isDead = false;
-            UpdateAnimator();
-            SetAttachedPartsActive(true);
-        }
+        _isDead = false;
+        animator = GetComponent<Animator>();
     }
 
     public void TakeDamage(float damage)
     {
-        if (isDead) return;
+        if (_isDead) return;
 
         _currentHealth = Mathf.Max(_currentHealth - damage, 0);
-        if (_currentHealth <= 0) Die();
-    }
 
-    public void Heal(float amount)
-    {
-        if (isDead) return;
-        _currentHealth = Mathf.Min(_currentHealth + amount, _maxHealth);
+        if (_currentHealth <= 0)
+        {
+            Die();
+        }
     }
 
     public void ResetHealth()
     {
         _currentHealth = _maxHealth;
-        isDead = false;
-        UpdateAnimator();
-        SetAttachedPartsActive(true);
-        CheckInitialHealth();
-    }
+        _isDead = false;
+        gameObject.SetActive(true);
 
+        // Réactiver les composants
+        var collider = GetComponent<Collider>();
+        if (collider != null) collider.enabled = true;
 
-    // MODIFICATION PRINCIPALE ICI
-    private void UpdateAnimator()
-    {
-        if (animator == null) return;
+        var rigidbody = GetComponent<Rigidbody>();
+        if (rigidbody != null) rigidbody.isKinematic = false;
 
-        // On utilise uniquement le booléen isDead
-        animator.SetBool("isDead", isDead);
-    }
-
-    private void SetAttachedPartsActive(bool active)
-    {
-        if (attachedParts == null) return;
-
-        foreach (GameObject part in attachedParts)
+        // Réactiver l'Animator
+        if (animator != null)
         {
-            if (part != null)
-            {
-                part.SetActive(active);
-            }
+            animator.enabled = true;
+            animator.ResetTrigger(deathTrigger);
         }
+
+        // Réactiver les scripts de contrôle
+        var railMover = GetComponent<RailMover>();
+        if (railMover != null) railMover.enabled = true;
     }
-    private void Die()
+
+    void Die()
     {
-        if (isDead) return;
+        _isDead = true;
 
-        isDead = true;
-        UpdateAnimator();
+        // Désactiver les composants physiques
+        var collider = GetComponent<Collider>();
+        if (collider != null) collider.enabled = false;
 
-        // Notifie tous les ennemis de la mort
-        OnPlayerDied?.Invoke(gameObject);
+        var rigidbody = GetComponent<Rigidbody>();
+        if (rigidbody != null) rigidbody.isKinematic = true;
 
+        // Déclencher l'animation de mort
+        if (animator != null)
+        {
+            animator.SetTrigger(deathTrigger);
+        }
+
+        // Désactiver les scripts de contrôle
+        var railMover = GetComponent<RailMover>();
+        if (railMover != null) railMover.enabled = false;
+
+        // Lancer les événements de mort
         OnDeath?.Invoke();
-        SetAttachedPartsActive(false);
+        OnAnyEntityDied?.Invoke(gameObject);
 
-        // Détruire l'objet après un délai
-        Destroy(gameObject, 3f);
+        // Démarrer la coroutine de désactivation
+        StartCoroutine(DelayedDeactivation());
     }
- }
+
+    private IEnumerator DelayedDeactivation()
+    {
+        yield return new WaitForSeconds(deathDelay);
+
+        if (animator != null) animator.enabled = false;
+
+        gameObject.SetActive(false);
+    }
+}

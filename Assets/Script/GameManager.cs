@@ -1,144 +1,146 @@
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
     [Header("Player Settings")]
-    public RailMover player;
-    public CanvasGroup restartCanvasGroup;
-    public float freezeDelay = 0.5f; // Délai avant freeze pour laisser l'UI s'afficher
+    public GameObject playerPrefab;
+    public Transform[] spawnPoints;
+    public float respawnDelay = 1f;
 
-    [Header("Level Reset")]
-    public List<EnemyController> enemies = new List<EnemyController>();
+    [Header("UI Settings")]
+    public CanvasGroup restartCanvasGroup;
+    public Button restartButton;
+
+    [Header("Game Elements")]
     public List<Item> items = new List<Item>();
     public List<ExplosiveBarrel> barrels = new List<ExplosiveBarrel>();
+    public List<EnemyController> enemies = new List<EnemyController>();
 
-    private Vector3 playerInitialPosition;
-    private Quaternion playerInitialRotation;
-    private Button restartButton;
-    private bool isRestarting = false;
+    private GameObject currentPlayer;
+    private int lastSpawnIndex = -1;
 
     void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
+            InitializeGameElements();
         }
         else
         {
             Destroy(gameObject);
-            return;
-        }
-
-        if (player != null)
-        {
-            playerInitialPosition = player.transform.position;
-            playerInitialRotation = player.transform.rotation;
-        }
-
-        if (restartCanvasGroup != null)
-        {
-            restartButton = restartCanvasGroup.GetComponentInChildren<Button>();
-            SetRestartUI(false);
         }
     }
 
     void Start()
     {
+        if (restartButton != null)
+        {
+            restartButton.onClick.AddListener(ResetLevel);
+            SetRestartUI(false);
+        }
+    }
+
+    void InitializeGameElements()
+    {
+        items.AddRange(FindObjectsOfType<Item>(true));
+        barrels.AddRange(FindObjectsOfType<ExplosiveBarrel>(true));
+        enemies.AddRange(FindObjectsOfType<EnemyController>(true));
+    }
+
+    public void PlayerDied(GameObject deadPlayer)
+    {
+        StartCoroutine(RespawnPlayerCoroutine());
+        SetRestartUI(true);
+    }
+
+    IEnumerator RespawnPlayerCoroutine()
+    {
+        yield return new WaitForSecondsRealtime(respawnDelay);
+
+        Transform spawnPoint = GetSafeSpawnPoint();
+        currentPlayer = Instantiate(playerPrefab, spawnPoint.position, spawnPoint.rotation);
+
+        if (currentPlayer.TryGetComponent<Health>(out var health))
+        {
+            health.OnDeath += () => PlayerDied(currentPlayer);
+        }
+
+        ClearAreaAroundSpawn(spawnPoint.position);
+    }
+
+    public void ResetLevel()
+    {
+        StartCoroutine(ResetLevelCoroutine());
+    }
+
+    IEnumerator ResetLevelCoroutine()
+    {
         SetRestartUI(false);
 
-        if (player != null)
+        foreach (var enemy in enemies)
         {
-            Health playerHealth = player.GetComponent<Health>();
-            if (playerHealth != null)
+            if (enemy != null) enemy.ResetEnemy();
+        }
+
+        foreach (var item in items)
+        {
+            if (item != null) item.ResetItem();
+        }
+
+        foreach (var barrel in barrels)
+        {
+            if (barrel != null) barrel.ResetBarrel();
+        }
+
+        yield return null;
+
+        if (currentPlayer == null)
+        {
+            Transform spawnPoint = GetSafeSpawnPoint();
+            currentPlayer = Instantiate(playerPrefab, spawnPoint.position, spawnPoint.rotation);
+
+            if (currentPlayer.TryGetComponent<Health>(out var health))
             {
-                playerHealth.OnDeath += OnPlayerDeath;
+                health.OnDeath += () => PlayerDied(currentPlayer);
             }
         }
     }
 
-    void OnPlayerDeath()
+    void SetRestartUI(bool visible)
     {
-        if (isRestarting) return;
-        isRestarting = true;
-
-        StartCoroutine(HandlePlayerDeath());
-    }
-
-    private IEnumerator HandlePlayerDeath()
-    {
-        Debug.Log("Player death detected");
-
-        // 1. Afficher l'UI immédiatement
-        SetRestartUI(true);
-
-        // 2. Attendre un court délai pour s'assurer que l'UI est rendue
-        yield return new WaitForSecondsRealtime(1f);
-
-        // 3. Freeze le jeu après le délai
-        Time.timeScale = 0f;
-        Debug.Log("Game frozen");
-    }
-
-    private void SetRestartUI(bool visible)
-    {
-        if (restartCanvasGroup == null)
+        if (restartCanvasGroup != null)
         {
-            Debug.LogError("RestartCanvasGroup is missing!");
-            return;
+            restartCanvasGroup.alpha = visible ? 1 : 0;
+            restartCanvasGroup.blocksRaycasts = visible;
+            restartCanvasGroup.interactable = visible;
         }
-
-        restartCanvasGroup.alpha = visible ? 1f : 0f;
-        restartCanvasGroup.blocksRaycasts = visible;
-        restartCanvasGroup.interactable = visible;
-
-        Debug.Log($"Restart UI set to: {visible}");
     }
 
-    public void RestartLevel()
+    Transform GetSafeSpawnPoint()
     {
-        if (!isRestarting) return;
-
-        Debug.Log("Restarting level...");
-        isRestarting = false;
-        Time.timeScale = 1f;
-
-        StartCoroutine(ResetLevelCoroutine());
+        lastSpawnIndex = (lastSpawnIndex + 1) % spawnPoints.Length;
+        return spawnPoints[lastSpawnIndex];
     }
 
-    private IEnumerator ResetLevelCoroutine()
+    void ClearAreaAroundSpawn(Vector3 position)
     {
-        // Désactiver l'UI immédiatement
-        SetRestartUI(false);
-
-        // Attendre une frame pour s'assurer que Time.timeScale est rétabli
-        yield return null;
-
-        ResetPlayer();
-        ResetEnemies();
-        ResetItems();
-        ResetBarrels();
-    }
-
-    void ResetPlayer()
-    {
-        if (player == null) return;
-
-        player.transform.SetPositionAndRotation(playerInitialPosition, playerInitialRotation);
-
-        // Utilisez reflection pour appeler ResetPlayer si nécessaire
-        var method = player.GetType().GetMethod("ResetPlayer");
-        if (method != null)
+        Collider[] colliders = Physics.OverlapSphere(position, 5f);
+        foreach (var col in colliders)
         {
-            method.Invoke(player, null);
-        }
-        else
-        {
-            Debug.LogError("ResetPlayer method not found on RailMover!");
+            if (col.CompareTag("Enemy") && col.TryGetComponent<EnemyController>(out var enemy))
+            {
+                enemy.RetreatFrom(position);
+            }
+            else if (col.CompareTag("Projectile"))
+            {
+                Destroy(col.gameObject);
+            }
         }
     }
 
@@ -149,31 +151,6 @@ public class GameManager : MonoBehaviour
             if (enemy != null)
             {
                 enemy.ResetEnemy();
-                Debug.Log($"Enemy {enemy.name} reset");
-            }
-        }
-    }
-
-    void ResetItems()
-    {
-        foreach (Item item in items)
-        {
-            if (item != null)
-            {
-                item.ResetItem();
-                Debug.Log($"Item {item.name} reset");
-            }
-        }
-    }
-
-    void ResetBarrels()
-    {
-        foreach (ExplosiveBarrel barrel in barrels)
-        {
-            if (barrel != null)
-            {
-                barrel.ResetBarrel();
-                Debug.Log($"Barrel {barrel.name} reset");
             }
         }
     }

@@ -5,7 +5,6 @@ using UnityEngine.Events;
 [RequireComponent(typeof(Health))]
 public class RailMover : MonoBehaviour
 {
-    // Événements statiques
     public static event UnityAction<bool> OnFreezeStateChanged;
     public static event UnityAction OnGameStarted;
 
@@ -24,14 +23,12 @@ public class RailMover : MonoBehaviour
     [SerializeField] private float obstacleDetectionRange = 1f;
     [SerializeField] private LayerMask obstacleLayer;
 
-    // Références internes
     private Health health;
     private Animator animator;
     private int currentPointIndex = 0;
     private bool isMoving = false;
     private bool canKick = true;
 
-    // Propriétés
     public bool IsFrozen { get; private set; } = true;
 
     void Awake()
@@ -39,7 +36,6 @@ public class RailMover : MonoBehaviour
         health = GetComponent<Health>();
         animator = GetComponent<Animator>();
 
-        // Initialisation sécurisée
         if (readyButton == null || readyUIContainer == null)
         {
             Debug.LogError("UI references missing in RailMover!", this);
@@ -53,7 +49,6 @@ public class RailMover : MonoBehaviour
 
     void Update()
     {
-        // Mettre à jour l'état de mouvement en premier
         bool shouldBeMoving = !IsFrozen && currentPointIndex < railPoints.Length;
         if (isMoving != shouldBeMoving)
         {
@@ -81,7 +76,6 @@ public class RailMover : MonoBehaviour
         if (Vector3.Distance(transform.position, target.position) <= waypointThreshold)
         {
             currentPointIndex++;
-            // Vérifier si on a atteint la fin
             if (currentPointIndex >= railPoints.Length)
             {
                 isMoving = false;
@@ -115,6 +109,11 @@ public class RailMover : MonoBehaviour
 
     void OnReadyPressed()
     {
+        if (health != null && health.isDead)
+        {
+            health.ResetHealth();
+        }
+
         readyUIContainer.SetActive(false);
         StartMovement();
     }
@@ -132,6 +131,13 @@ public class RailMover : MonoBehaviour
     {
         IsFrozen = true;
         isMoving = false;
+
+        // Déclencher l'animation de mort
+        if (animator != null)
+        {
+            animator.SetTrigger("Die"); // Utilisez le même nom que dans Health.cs
+        }
+
         UpdateAnimator();
     }
 
@@ -143,18 +149,10 @@ public class RailMover : MonoBehaviour
 
     void UpdateAnimator()
     {
-        if (animator == null)
-        {
-            Debug.LogError("Animator non assigné !", this);
-            return;
-        }
+        if (animator == null) return;
 
         bool shouldAnimateMove = isMoving && !IsFrozen;
         animator.SetBool("isMoving", shouldAnimateMove);
-
-        // Debug critique (à garder temporairement)
-        Debug.Log($"Script -> Animator : isMoving={shouldAnimateMove} " +
-                 $"(isMoving={isMoving}, IsFrozen={IsFrozen})");
     }
 
     void OnDestroy()
@@ -163,39 +161,39 @@ public class RailMover : MonoBehaviour
         if (readyButton != null)
             readyButton.onClick.RemoveListener(OnReadyPressed);
     }
+
     public void ResetPlayer()
     {
-        Debug.Log("Resetting player...");
-
-        // Réinitialisation de la position et du mouvement
-        currentPointIndex = 0;
-        transform.position = railPoints[0].position;
         IsFrozen = true;
         isMoving = false;
+        currentPointIndex = 0;
 
-        // Réactivation de l'UI Ready
+        if (railPoints.Length > 0 && railPoints[0] != null)
+        {
+            transform.position = railPoints[0].position;
+        }
+
         if (readyUIContainer != null)
         {
             readyUIContainer.SetActive(true);
-            Debug.Log("Ready UI reactivated");
+            if (readyButton != null)
+            {
+                readyButton.onClick.RemoveAllListeners();
+                readyButton.onClick.AddListener(OnReadyPressed);
+            }
         }
 
-        // Réinitialisation de la santé
-        if (health != null)
+        UpdateAnimator();
+
+        if (health != null && health.isDead)
         {
             health.ResetHealth();
         }
-
-        // Mise à jour de l'animator
-        UpdateAnimator();
-
-        Debug.Log("Player reset complete");
     }
 
 #if UNITY_EDITOR
     void OnDrawGizmosSelected()
     {
-        // Visualisation du rail
         Gizmos.color = Color.blue;
         for (int i = 0; i < railPoints.Length; i++)
         {
@@ -205,7 +203,6 @@ public class RailMover : MonoBehaviour
                 Gizmos.DrawLine(railPoints[i].position, railPoints[i+1].position);
         }
 
-        // Visualisation de la détection
         Gizmos.color = Color.red;
         Gizmos.DrawRay(transform.position, transform.forward * obstacleDetectionRange);
     }

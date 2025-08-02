@@ -21,7 +21,12 @@ public class ExplosiveBarrel : MonoBehaviour
     public void ResetBarrel()
     {
         transform.SetPositionAndRotation(initialPosition, initialRotation);
-        health.ResetHealth();
+
+        if (health != null)
+        {
+            health.ResetHealth();
+        }
+
         gameObject.SetActive(true);
     }
 

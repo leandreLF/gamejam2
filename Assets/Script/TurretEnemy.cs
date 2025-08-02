@@ -19,31 +19,31 @@ public class TurretEnemy : MonoBehaviour
 
     [Header("Animation")]
     public Animator animator;
-    public float shootingAnimDuration = 0.3f; // Durée de l'animation de tir
+    public float shootingAnimDuration = 0.3f;
 
     private Transform currentTarget;
     private float nextFireTime;
     private bool isActive = false;
     private bool isShooting = false;
     private float shootingEndTime;
+    private GameObject playerObject;
 
     void Start()
     {
         RailMover.OnGameStarted += ActivateTurret;
-        Health.OnPlayerDied += OnPlayerDied;
+        Health.OnAnyEntityDied += OnEntityDied;
 
-        // Initialisation de l'animator si non assigné
         if (animator == null)
             animator = GetComponent<Animator>();
+
+        playerObject = GameObject.FindGameObjectWithTag(targetTag);
     }
 
     void Update()
     {
         if (!isActive) return;
 
-        // Gestion de l'état de tir
         UpdateShootingState();
-
         FindTarget();
 
         if (currentTarget == null) return;
@@ -57,7 +57,6 @@ public class TurretEnemy : MonoBehaviour
 
     void UpdateShootingState()
     {
-        // Désactive l'état de tir après la durée de l'animation
         if (isShooting && Time.time >= shootingEndTime)
         {
             isShooting = false;
@@ -76,21 +75,25 @@ public class TurretEnemy : MonoBehaviour
     void ActivateTurret()
     {
         isActive = true;
-        Debug.Log("Turret activated!");
     }
 
     void FindTarget()
     {
+        if (playerObject == null)
+        {
+            playerObject = GameObject.FindGameObjectWithTag(targetTag);
+            if (playerObject == null) return;
+        }
+
         if (currentTarget != null && currentTarget.gameObject.activeInHierarchy)
             return;
 
-        GameObject player = GameObject.FindGameObjectWithTag(targetTag);
-        if (player != null && player.activeInHierarchy)
+        if (playerObject.activeInHierarchy)
         {
-            Health playerHealth = player.GetComponent<Health>();
+            Health playerHealth = playerObject.GetComponent<Health>();
             if (playerHealth != null && !playerHealth.isDead)
             {
-                currentTarget = player.transform;
+                currentTarget = playerObject.transform;
             }
             else
             {
@@ -120,36 +123,31 @@ public class TurretEnemy : MonoBehaviour
     {
         if (currentTarget == null) return;
 
-        // Déclenche l'animation de tir
         isShooting = true;
         shootingEndTime = Time.time + shootingAnimDuration;
         UpdateAnimator();
 
-        // Effets de tir
         if (muzzleFlash != null)
             muzzleFlash.Play();
 
-        // Création du projectile
         GameObject projectile = Instantiate(
             projectilePrefab,
             firePoint.position,
             Quaternion.LookRotation(currentTarget.position - firePoint.position)
         );
 
-        // Physique du projectile
         if (projectile.TryGetComponent<Rigidbody>(out var rb))
         {
             rb.linearVelocity = (currentTarget.position - firePoint.position).normalized * projectileSpeed;
         }
 
-        // Nettoyage
         Destroy(projectile, 5f);
     }
 
     void OnDestroy()
     {
         RailMover.OnGameStarted -= ActivateTurret;
-        Health.OnPlayerDied -= OnPlayerDied;
+        Health.OnAnyEntityDied -= OnEntityDied;
     }
 
     void OnDrawGizmosSelected()
@@ -157,14 +155,13 @@ public class TurretEnemy : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, detectionRange);
     }
-    private void OnPlayerDied(GameObject playerObject)
+
+    private void OnEntityDied(GameObject entity)
     {
-        // Vérifie si la cible morte est notre cible actuelle
         if (currentTarget != null && currentTarget.gameObject == playerObject)
         {
-            Debug.Log("Player died, clearing target");
             currentTarget = null;
-            isActive = false; // Désactive la tourelle
+            isActive = false;
         }
     }
 }
