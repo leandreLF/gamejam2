@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class ExplosiveBarrel : MonoBehaviour
+public class EnemyController : MonoBehaviour
 {
     private Vector3 initialPosition;
     private Quaternion initialRotation;
@@ -14,11 +14,11 @@ public class ExplosiveBarrel : MonoBehaviour
 
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.barrels.Add(this);
+            GameManager.Instance.enemies.Add(this);
         }
     }
 
-    public void ResetBarrel()
+    public void ResetEnemy()
     {
         transform.SetPositionAndRotation(initialPosition, initialRotation);
         health.ResetHealth();
@@ -29,7 +29,7 @@ public class ExplosiveBarrel : MonoBehaviour
     {
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.barrels.Remove(this);
+            GameManager.Instance.enemies.Remove(this);
         }
     }
 }

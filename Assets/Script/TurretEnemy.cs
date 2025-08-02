@@ -17,18 +17,31 @@ public class TurretEnemy : MonoBehaviour
     [Header("Effects")]
     public ParticleSystem muzzleFlash;
 
+    [Header("Animation")]
+    public Animator animator;
+    public float shootingAnimDuration = 0.3f; // Durée de l'animation de tir
+
     private Transform currentTarget;
     private float nextFireTime;
-    private bool isActive = false; // Désactivé par défaut
+    private bool isActive = false;
+    private bool isShooting = false;
+    private float shootingEndTime;
 
     void Start()
     {
-        RailMover.OnGameStarted += ActivateTurret; // Abonnement à l'événement
+        RailMover.OnGameStarted += ActivateTurret;
+
+        // Initialisation de l'animator si non assigné
+        if (animator == null)
+            animator = GetComponent<Animator>();
     }
 
     void Update()
     {
-        if (!isActive) return; // Ne rien faire si inactif
+        if (!isActive) return;
+
+        // Gestion de l'état de tir
+        UpdateShootingState();
 
         FindTarget();
 
@@ -41,9 +54,27 @@ public class TurretEnemy : MonoBehaviour
         }
     }
 
+    void UpdateShootingState()
+    {
+        // Désactive l'état de tir après la durée de l'animation
+        if (isShooting && Time.time >= shootingEndTime)
+        {
+            isShooting = false;
+            UpdateAnimator();
+        }
+    }
+
+    void UpdateAnimator()
+    {
+        if (animator != null)
+        {
+            animator.SetBool("isShooting", isShooting);
+        }
+    }
+
     void ActivateTurret()
     {
-        isActive = true; // Activé seulement quand le jeu commence
+        isActive = true;
         Debug.Log("Turret activated!");
     }
 
@@ -60,7 +91,6 @@ public class TurretEnemy : MonoBehaviour
         float distance = direction.magnitude;
         direction.Normalize();
 
-        // Debug visuel
         Debug.DrawRay(firePoint.position, direction * distance, Color.yellow, 0.1f);
 
         return !Physics.Raycast(firePoint.position, direction, distance, obstacleLayers);
@@ -70,23 +100,35 @@ public class TurretEnemy : MonoBehaviour
     {
         if (currentTarget == null) return;
 
+        // Déclenche l'animation de tir
+        isShooting = true;
+        shootingEndTime = Time.time + shootingAnimDuration;
+        UpdateAnimator();
+
+        // Effets de tir
         if (muzzleFlash != null)
             muzzleFlash.Play();
 
-        GameObject projectile = Instantiate(projectilePrefab, firePoint.position,
-            Quaternion.LookRotation(currentTarget.position - firePoint.position));
+        // Création du projectile
+        GameObject projectile = Instantiate(
+            projectilePrefab,
+            firePoint.position,
+            Quaternion.LookRotation(currentTarget.position - firePoint.position)
+        );
 
+        // Physique du projectile
         if (projectile.TryGetComponent<Rigidbody>(out var rb))
         {
             rb.linearVelocity = (currentTarget.position - firePoint.position).normalized * projectileSpeed;
         }
 
+        // Nettoyage
         Destroy(projectile, 5f);
     }
 
     void OnDestroy()
     {
-        RailMover.OnGameStarted -= ActivateTurret; // Désabonnement important
+        RailMover.OnGameStarted -= ActivateTurret;
     }
 
     void OnDrawGizmosSelected()

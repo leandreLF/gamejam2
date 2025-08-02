@@ -1,27 +1,24 @@
 using UnityEngine;
 
-public class ExplosiveBarrel : MonoBehaviour
+public class Item : MonoBehaviour
 {
     private Vector3 initialPosition;
     private Quaternion initialRotation;
-    private Health health;
 
     void Start()
     {
         initialPosition = transform.position;
         initialRotation = transform.rotation;
-        health = GetComponent<Health>();
 
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.barrels.Add(this);
+            GameManager.Instance.items.Add(this);
         }
     }
 
-    public void ResetBarrel()
+    public void ResetItem()
     {
         transform.SetPositionAndRotation(initialPosition, initialRotation);
-        health.ResetHealth();
         gameObject.SetActive(true);
     }
 
@@ -29,7 +26,7 @@ public class ExplosiveBarrel : MonoBehaviour
     {
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.barrels.Remove(this);
+            GameManager.Instance.items.Remove(this);
         }
     }
 }

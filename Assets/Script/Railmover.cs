@@ -53,6 +53,14 @@ public class RailMover : MonoBehaviour
 
     void Update()
     {
+        // Mettre à jour l'état de mouvement en premier
+        bool shouldBeMoving = !IsFrozen && currentPointIndex < railPoints.Length;
+        if (isMoving != shouldBeMoving)
+        {
+            isMoving = shouldBeMoving;
+            UpdateAnimator();
+        }
+
         if (IsFrozen || !isMoving) return;
 
         HandleMovement();
@@ -73,6 +81,12 @@ public class RailMover : MonoBehaviour
         if (Vector3.Distance(transform.position, target.position) <= waypointThreshold)
         {
             currentPointIndex++;
+            // Vérifier si on a atteint la fin
+            if (currentPointIndex >= railPoints.Length)
+            {
+                isMoving = false;
+                UpdateAnimator();
+            }
         }
     }
 
@@ -105,7 +119,7 @@ public class RailMover : MonoBehaviour
         StartMovement();
     }
 
-    void StartMovement()
+    public void StartMovement()
     {
         IsFrozen = false;
         isMoving = true;
@@ -116,18 +130,8 @@ public class RailMover : MonoBehaviour
 
     void OnPlayerDeath()
     {
-        ResetPlayer();
-    }
-
-    public void ResetPlayer()
-    {
-        currentPointIndex = 0;
-        transform.position = railPoints[0].position;
         IsFrozen = true;
         isMoving = false;
-
-        readyUIContainer.SetActive(true);
-        health.ResetHealth();
         UpdateAnimator();
     }
 
@@ -139,8 +143,18 @@ public class RailMover : MonoBehaviour
 
     void UpdateAnimator()
     {
-        if (animator == null) return;
-        animator.SetBool("IsMoving", isMoving && !IsFrozen);
+        if (animator == null)
+        {
+            Debug.LogError("Animator non assigné !", this);
+            return;
+        }
+
+        bool shouldAnimateMove = isMoving && !IsFrozen;
+        animator.SetBool("isMoving", shouldAnimateMove);
+
+        // Debug critique (à garder temporairement)
+        Debug.Log($"Script -> Animator : isMoving={shouldAnimateMove} " +
+                 $"(isMoving={isMoving}, IsFrozen={IsFrozen})");
     }
 
     void OnDestroy()
@@ -148,6 +162,34 @@ public class RailMover : MonoBehaviour
         health.OnDeath -= OnPlayerDeath;
         if (readyButton != null)
             readyButton.onClick.RemoveListener(OnReadyPressed);
+    }
+    public void ResetPlayer()
+    {
+        Debug.Log("Resetting player...");
+
+        // Réinitialisation de la position et du mouvement
+        currentPointIndex = 0;
+        transform.position = railPoints[0].position;
+        IsFrozen = true;
+        isMoving = false;
+
+        // Réactivation de l'UI Ready
+        if (readyUIContainer != null)
+        {
+            readyUIContainer.SetActive(true);
+            Debug.Log("Ready UI reactivated");
+        }
+
+        // Réinitialisation de la santé
+        if (health != null)
+        {
+            health.ResetHealth();
+        }
+
+        // Mise à jour de l'animator
+        UpdateAnimator();
+
+        Debug.Log("Player reset complete");
     }
 
 #if UNITY_EDITOR
