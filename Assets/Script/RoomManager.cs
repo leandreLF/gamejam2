@@ -11,6 +11,7 @@ public class RoomManager : MonoBehaviour
         public Transform railPath; // <- Chemin de RailMover
         public List<ResettableObject> roomObjects = new List<ResettableObject>();
         public Transform roomCameraPosition;
+        public Transform pixelCameraPosition;  // Position pour la pixel camera
     }
 
     [Header("Room Settings")]
@@ -19,6 +20,7 @@ public class RoomManager : MonoBehaviour
 
     [Header("References")]
     public Camera mainCamera;
+    public Camera pixelCamera;  // Référence à la deuxième caméra
     public GameObject playerPrefab;
 
     private GameObject currentPlayer;
@@ -84,11 +86,18 @@ public class RoomManager : MonoBehaviour
 
     private void PositionCamera()
     {
-        Transform camPos = GetCurrentRoom().roomCameraPosition;
-        if (camPos != null)
+        Room currentRoom = GetCurrentRoom();
+
+        if (currentRoom.roomCameraPosition != null)
         {
-            mainCamera.transform.position = camPos.position;
-            mainCamera.transform.rotation = camPos.rotation;
+            mainCamera.transform.position = currentRoom.roomCameraPosition.position;
+            mainCamera.transform.rotation = currentRoom.roomCameraPosition.rotation;
+        }
+
+        if (pixelCamera != null && currentRoom.pixelCameraPosition != null)
+        {
+            pixelCamera.transform.position = currentRoom.pixelCameraPosition.position;
+            pixelCamera.transform.rotation = currentRoom.pixelCameraPosition.rotation;
         }
     }
 
