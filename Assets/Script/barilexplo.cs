@@ -3,7 +3,7 @@ using System.Collections;
 
 [RequireComponent(typeof(Health))]
 [RequireComponent(typeof(Collider))]
-public class ExplosiveBarrel : MonoBehaviour
+public class ExplosiveBarrel : ResettableObject
 {
     [Header("Explosion Settings")]
     public float explosionRadius = 5f;
@@ -12,16 +12,12 @@ public class ExplosiveBarrel : MonoBehaviour
     public LayerMask explosionAffectedLayers;
     public GameObject explosionEffect;
 
-    private Vector3 initialPosition;
-    private Quaternion initialRotation;
     private Health health;
     private Collider barrelCollider;
     private bool hasExploded = false;
 
-    void Start()
+    void Awake()
     {
-        initialPosition = transform.position;
-        initialRotation = transform.rotation;
         health = GetComponent<Health>();
         barrelCollider = GetComponent<Collider>();
 
@@ -33,58 +29,62 @@ public class ExplosiveBarrel : MonoBehaviour
         }
 
         health.OnDeath += HandleBarrelDeath;
-        RegisterWithGameManager();
     }
 
-    void RegisterWithGameManager()
+    void Start()
     {
-        if (GameManager.Instance != null)
+        // Enregistre cet objet dans la pièce courante
+        if (RoomManager.Instance != null)
         {
-            GameManager.Instance.barrels.Add(this);
+            RoomManager.Instance.RegisterObjectInCurrentRoom(gameObject);
         }
         else
         {
-            Debug.LogWarning("GameManager instance not found, retrying...");
-            Invoke("RegisterWithGameManager", 1f);
+            Debug.LogWarning("RoomManager instance not found during ExplosiveBarrel Start!");
         }
     }
 
-    public void ResetBarrel()
+    private void OnDestroy()
     {
-        hasExploded = false;
-        transform.SetPositionAndRotation(initialPosition, initialRotation);
-        gameObject.SetActive(true);
-
         if (health != null)
         {
-            health.ResetHealth();
+            health.OnDeath -= HandleBarrelDeath;
         }
+    }
+
+    public override void ResetObject()
+    {
+        base.ResetObject(); // Reset position/rotation/velocity
+
+        hasExploded = false;
 
         if (barrelCollider != null)
-        {
             barrelCollider.enabled = true;
-        }
+
+        if (health != null)
+            health.ResetHealth();
+
+        gameObject.SetActive(true);
     }
 
     private void HandleBarrelDeath()
     {
-        if (hasExploded) return;
+        if (hasExploded)
+            return;
+
         hasExploded = true;
 
-        // Désactiver le collider immédiatement
-        if (barrelCollider != null) barrelCollider.enabled = false;
+        if (barrelCollider != null)
+            barrelCollider.enabled = false;
 
-        // Jouer l'effet d'explosion
         if (explosionEffect != null)
         {
             GameObject effect = Instantiate(explosionEffect, transform.position, transform.rotation);
             Destroy(effect, 3f);
         }
 
-        // Appliquer les dégâts et la force d'explosion
         ApplyExplosionEffects();
 
-        // Désactiver le baril après un court délai
         StartCoroutine(DisableAfterDelay());
     }
 
@@ -94,14 +94,12 @@ public class ExplosiveBarrel : MonoBehaviour
 
         foreach (Collider hit in colliders)
         {
-            // Appliquer des dégâts
             Health targetHealth = hit.GetComponent<Health>();
             if (targetHealth != null)
             {
                 targetHealth.TakeDamage(explosionDamage);
             }
 
-            // Appliquer une force physique
             Rigidbody rb = hit.GetComponent<Rigidbody>();
             if (rb != null)
             {
@@ -114,19 +112,6 @@ public class ExplosiveBarrel : MonoBehaviour
     {
         yield return new WaitForSeconds(0.5f);
         gameObject.SetActive(false);
-    }
-
-    void OnDestroy()
-    {
-        if (health != null)
-        {
-            health.OnDeath -= HandleBarrelDeath;
-        }
-
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.barrels.Remove(this);
-        }
     }
 
     void OnDrawGizmosSelected()

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 public class UIManager : MonoBehaviour
 {
@@ -21,6 +22,14 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    void Start()
+    {
+        if (readyButton != null)
+        {
+            readyButton.onClick.AddListener(OnReadyButtonPressed);
+        }
+    }
+
     public void ShowReadyUI()
     {
         if (readyUIContainer != null)
@@ -35,5 +44,25 @@ public class UIManager : MonoBehaviour
         {
             readyUIContainer.SetActive(false);
         }
+    }
+
+    public void OnReadyButtonPressed()
+    {
+        List<ResettableObject> roomObjects = RoomManager.Instance.GetCurrentRoomObjects();
+
+        for (int i = roomObjects.Count - 1; i >= 0; i--)
+        {
+            var item = roomObjects[i];
+            if (item == null)
+            {
+                roomObjects.RemoveAt(i);
+            }
+            else
+            {
+                item.UpdateInitialStateToCurrent();
+            }
+        }
+
+        HideReadyUI();
     }
 }

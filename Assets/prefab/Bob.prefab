@@ -133,8 +133,8 @@ MonoBehaviour:
   targetRefreshRate: 0.5
   projectilePrefab: {fileID: 6952947874221999873, guid: 7c031d318f656ef47bf114b26d94d1f4, type: 3}
   firePoint: {fileID: 8669165893142612122}
-  fireRate: 1
-  projectileSpeed: 40
+  fireRate: 14
+  projectileSpeed: 2000
   muzzleFlash: {fileID: 0}
   animator: {fileID: 0}
   shootingAnimDuration: 0.3
@@ -244,7 +244,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1261670f0d10d644aad77228086ea5fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _maxHealth: 50
+  _maxHealth: 1000
   deathDelay: 0.8
   deathTrigger: Die
 --- !u!114 &4487247045222142426

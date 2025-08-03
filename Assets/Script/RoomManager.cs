@@ -26,78 +26,72 @@ public class RoomManager : MonoBehaviour
 
     void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
     }
 
     void Start()
     {
-        InitializeRoomSystem();
+        InitializeRooms();
         SpawnPlayer();
     }
 
-    private void InitializeRoomSystem()
+    private void InitializeRooms()
     {
         foreach (Room room in rooms)
         {
             foreach (ResettableObject obj in room.roomObjects)
             {
-                if (obj != null) obj.SetInitialState();
+                if (obj != null)
+                {
+                    obj.SetInitialState();
+                }
             }
         }
     }
 
     public void SpawnPlayer()
     {
-        if (currentPlayer != null) Destroy(currentPlayer);
+        if (currentPlayer != null)
+            Destroy(currentPlayer);
 
-        Room currentRoom = rooms[currentRoomIndex];
-        Transform spawnPoint = currentRoom.spawnPoints[0];
-        currentPlayer = Instantiate(playerPrefab, spawnPoint.position, spawnPoint.rotation);
+        Transform spawn = GetCurrentRoom().spawnPoints[0];
+        currentPlayer = Instantiate(playerPrefab, spawn.position, spawn.rotation);
         PositionCamera();
     }
 
     private void PositionCamera()
     {
-        Room currentRoom = rooms[currentRoomIndex];
-        if (currentRoom.roomCameraPosition != null)
+        Transform camPos = GetCurrentRoom().roomCameraPosition;
+        if (camPos != null)
         {
-            mainCamera.transform.position = currentRoom.roomCameraPosition.position;
-            mainCamera.transform.rotation = currentRoom.roomCameraPosition.rotation;
+            mainCamera.transform.position = camPos.position;
+            mainCamera.transform.rotation = camPos.rotation;
         }
     }
 
     public void ResetCurrentRoom()
     {
-        Room currentRoom = rooms[currentRoomIndex];
+        foreach (ResettableObject obj in GetCurrentRoom().roomObjects)
+        {
+            if (obj != null)
+                obj.ResetObject();
+        }
 
-        foreach (ResettableObject resettable in currentRoom.roomObjects)
-        {
-            if (resettable != null) resettable.ResetObject();
-        }
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.ShowReadyUI();
-        }
+        UIManager.Instance?.ShowReadyUI();
 
         ResetCheckpoints();
 
-        PlayerRespawn playerRespawn = currentPlayer.GetComponent<PlayerRespawn>();
+        var playerRespawn = currentPlayer.GetComponent<PlayerRespawn>();
         if (playerRespawn != null)
         {
             playerRespawn.ResetPlayer();
         }
         else
         {
-            Transform spawnPoint = currentRoom.spawnPoints[0];
-            currentPlayer.transform.position = spawnPoint.position;
-            currentPlayer.transform.rotation = spawnPoint.rotation;
+            Transform spawn = GetCurrentRoom().spawnPoints[0];
+            currentPlayer.transform.position = spawn.position;
+            currentPlayer.transform.rotation = spawn.rotation;
         }
 
         PositionCamera();
@@ -108,11 +102,10 @@ public class RoomManager : MonoBehaviour
         if (newRoomIndex < 0 || newRoomIndex >= rooms.Length) return;
 
         currentRoomIndex = newRoomIndex;
-        Room newRoom = rooms[currentRoomIndex];
+        Transform spawn = GetCurrentRoom().spawnPoints[0];
 
-        Transform spawnPoint = newRoom.spawnPoints[0];
-        currentPlayer.transform.position = spawnPoint.position;
-        currentPlayer.transform.rotation = spawnPoint.rotation;
+        currentPlayer.transform.position = spawn.position;
+        currentPlayer.transform.rotation = spawn.rotation;
 
         PositionCamera();
     }
@@ -120,11 +113,25 @@ public class RoomManager : MonoBehaviour
     public void RegisterObjectInCurrentRoom(GameObject obj)
     {
         ResettableObject resettable = obj.GetComponent<ResettableObject>();
-        if (resettable != null)
+        if (resettable != null && !GetCurrentRoom().roomObjects.Contains(resettable))
         {
-            rooms[currentRoomIndex].roomObjects.Add(resettable);
+            GetCurrentRoom().roomObjects.Add(resettable);
             resettable.SetInitialState();
         }
+    }
+
+    public void OnReadyPressed()
+    {
+        foreach (ResettableObject obj in GetCurrentRoom().roomObjects)
+        {
+            if (obj != null)
+                obj.UpdateInitialStateToCurrent();
+        }
+    }
+
+    public List<ResettableObject> GetCurrentRoomObjects()
+    {
+        return GetCurrentRoom().roomObjects;
     }
 
     public void ResetCheckpoints()
@@ -132,7 +139,12 @@ public class RoomManager : MonoBehaviour
         Checkpoint[] allCheckpoints = FindObjectsOfType<Checkpoint>();
         foreach (Checkpoint checkpoint in allCheckpoints)
         {
-            if (checkpoint != null) checkpoint.ResetCheckpoint();
+            checkpoint?.ResetCheckpoint();
         }
+    }
+
+    private Room GetCurrentRoom()
+    {
+        return rooms[currentRoomIndex];
     }
 }

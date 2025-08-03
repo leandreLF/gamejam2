@@ -75,6 +75,14 @@ public class DivineGrabMouse : MonoBehaviour
             grabbedObject.linearDamping = 0f;
             grabbedObject.linearVelocity = Vector3.zero;
             grabbedObject.angularVelocity = Vector3.zero;
+
+            // MAJ de la position initiale du ResettableObject pour que le reset utilise la nouvelle position
+            ResettableObject resettable = grabbedObject.GetComponent<ResettableObject>();
+            if (resettable != null)
+            {
+                resettable.UpdateInitialStateToCurrent();
+            }
+
             grabbedObject = null;
             Debug.Log("Objet lâché");
         }
