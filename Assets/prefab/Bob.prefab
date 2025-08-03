@@ -125,7 +125,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetTags:
   - enemy
-  detectionRange: 15
+  detectionRange: 10
   obstacleLayers:
     serializedVersion: 2
     m_Bits: 128
@@ -264,11 +264,11 @@ MonoBehaviour:
   readyUIContainerName: ReadyUIContainer
   readyButtonName: ReadyButton
   kickDamage: 20
-  kickCooldown: 1
-  obstacleDetectionRange: 3
+  kickCooldown: 0.5
+  obstacleDetectionRange: 6
   obstacleLayer:
     serializedVersion: 2
-    m_Bits: 8
+    m_Bits: 512
 --- !u!95 &8413549187737581762
 Animator:
   serializedVersion: 7
