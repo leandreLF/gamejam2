@@ -54,6 +54,9 @@ public class Health : MonoBehaviour
         {
             animator.enabled = true;
             animator.ResetTrigger(deathTrigger);
+            animator.SetBool("isDead", false);
+            animator.SetBool("isShooting", false);
+            animator.Play("Idle", 0, 0f);
         }
 
         var railMover = GetComponent<RailMover>();
