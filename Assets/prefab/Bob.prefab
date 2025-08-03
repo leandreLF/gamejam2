@@ -125,7 +125,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetTags:
   - enemy
-  detectionRange: 14
+  detectionRange: 20
   obstacleLayers:
     serializedVersion: 2
     m_Bits: 128
