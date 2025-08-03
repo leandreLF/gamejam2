@@ -57,6 +57,14 @@ public class RoomManager : MonoBehaviour
 
         Transform spawn = GetCurrentRoom().spawnPoints[0];
         currentPlayer = Instantiate(playerPrefab, spawn.position, spawn.rotation);
+
+        // Récupère le PlayerRespawn et mets à jour son spawn point
+        PlayerRespawn playerRespawn = currentPlayer.GetComponent<PlayerRespawn>();
+        if (playerRespawn != null)
+        {
+            playerRespawn.SetSpawnPoint(spawn);
+        }
+
         PositionCamera();
     }
 
@@ -83,19 +91,22 @@ public class RoomManager : MonoBehaviour
         ResetCheckpoints();
 
         var playerRespawn = currentPlayer.GetComponent<PlayerRespawn>();
+        Transform spawn = GetCurrentRoom().spawnPoints[0];
+
         if (playerRespawn != null)
         {
+            playerRespawn.SetSpawnPoint(spawn); // **Important**
             playerRespawn.ResetPlayer();
         }
         else
         {
-            Transform spawn = GetCurrentRoom().spawnPoints[0];
             currentPlayer.transform.position = spawn.position;
             currentPlayer.transform.rotation = spawn.rotation;
         }
 
         PositionCamera();
     }
+
 
     public void ChangeRoom(int newRoomIndex)
     {

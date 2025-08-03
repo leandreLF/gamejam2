@@ -133,8 +133,8 @@ MonoBehaviour:
   targetRefreshRate: 0.5
   projectilePrefab: {fileID: 6952947874221999873, guid: 7c031d318f656ef47bf114b26d94d1f4, type: 3}
   firePoint: {fileID: 8669165893142612122}
-  fireRate: 14
-  projectileSpeed: 2000
+  fireRate: 1
+  projectileSpeed: 40
   muzzleFlash: {fileID: 0}
   animator: {fileID: 0}
   shootingAnimDuration: 0.3
@@ -260,18 +260,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   railPoints:
-  - {fileID: 6438693864098633008, guid: 846b61c487bfe0c4f836b548baa4358c, type: 3}
-  - {fileID: 1565451349597951567, guid: e578cf129c1c63443aa4eea3177a9b4b, type: 3}
-  moveSpeed: 2
-  waypointThreshold: 1
+  - {fileID: 855838657387005846, guid: 7e7f3b0493335a544b14208c9e7d0d4e, type: 3}
+  - {fileID: 3726596572799259051, guid: dfafa0bd986948145a813231454a3e98, type: 3}
+  - {fileID: 1596063878197647482, guid: 9f47f9c3a79f99345829ee641ea09ddd, type: 3}
+  - {fileID: 3990981549991128279, guid: c8e4a330b290df7488aae01981a135c4, type: 3}
+  moveSpeed: 3
+  waypointThreshold: 2
   readyUIContainerName: ReadyUIContainer
   readyButtonName: ReadyButton
   kickDamage: 20
   kickCooldown: 1
-  obstacleDetectionRange: 1
+  obstacleDetectionRange: 3
   obstacleLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 8
 --- !u!95 &8413549187737581762
 Animator:
   serializedVersion: 7
@@ -349,7 +351,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2582488905179503901}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ae1592bcae463e6498af334d2e5b5aca, type: 3}
   m_Name: 

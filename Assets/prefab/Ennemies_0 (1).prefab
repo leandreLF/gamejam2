@@ -123,12 +123,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5d7cafd1b2bc2c4cbbeb466e5399f17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetTag: Player
+  targetTags:
+  - Player
+  - enemy
   detectionRange: 50
   obstacleLayers:
     serializedVersion: 2
     m_Bits: 0
   aimingAngle: 360
+  targetRefreshRate: 0.5
   projectilePrefab: {fileID: 6952947874221999873, guid: 7c031d318f656ef47bf114b26d94d1f4, type: 3}
   firePoint: {fileID: 6934879112636683903}
   fireRate: 1
@@ -150,7 +153,7 @@ GameObject:
   - component: {fileID: 3173409252864334287}
   - component: {fileID: 722033948517897597}
   - component: {fileID: 355276087950173195}
-  - component: {fileID: 1648951831190270696}
+  - component: {fileID: 8240739762949836173}
   m_Layer: 0
   m_Name: Ennemies_0 (1)
   m_TagString: enemy
@@ -167,7 +170,7 @@ Transform:
   m_GameObject: {fileID: 7734239373147200678}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 4.46, y: 1.95, z: -1.5727}
+  m_LocalPosition: {x: 4.46, y: 1.95, z: -1.537}
   m_LocalScale: {x: 12.151992, y: 12.151992, z: 12.151992}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -263,10 +266,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1261670f0d10d644aad77228086ea5fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _maxHealth: 10000
-  animator: {fileID: 0}
-  attachedParts:
-  - {fileID: 1775500340492972851}
+  _maxHealth: 10
+  deathDelay: 1
+  deathTrigger: Die
 --- !u!54 &722033948517897597
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -313,9 +315,9 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.13666156, y: 0.29642105, z: 0.07514932}
-  m_Center: {x: 0.0019909076, y: -0.051789526, z: 0.00471779}
---- !u!114 &1648951831190270696
+  m_Size: {x: 0.09195971, y: 0.29642105, z: 0.09168925}
+  m_Center: {x: -0.020359958, y: -0.051789526, z: -0.000012713572}
+--- !u!114 &8240739762949836173
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -324,7 +326,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 7734239373147200678}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e512ab60fbeae1a4595b7a029a3740a0, type: 3}
+  m_Script: {fileID: 11500000, guid: 14790023d0d015d4dae720dbc623c9b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  respawnDelay: 3

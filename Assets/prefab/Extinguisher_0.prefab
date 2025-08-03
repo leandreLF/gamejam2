@@ -13,11 +13,11 @@ GameObject:
   - component: {fileID: 2183173984845428556}
   - component: {fileID: 7359932801039867900}
   - component: {fileID: 5839979775282111602}
-  - component: {fileID: 8800239377107459665}
   - component: {fileID: 8490614818878703501}
-  - component: {fileID: 1486748510831034663}
-  - component: {fileID: -5067811113168794534}
-  - component: {fileID: 7745765304078633814}
+  - component: {fileID: 3304961035898539412}
+  - component: {fileID: 5195664445333164946}
+  - component: {fileID: 1657333031576417932}
+  - component: {fileID: 8178194132374063601}
   m_Layer: 9
   m_Name: Extinguisher_0
   m_TagString: enemy
@@ -123,7 +123,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   explosionRadius: 5
-  explosionDamage: 100
+  explosionDamage: 0
   explosionForce: 0
   explosionAffectedLayers:
     serializedVersion: 2
@@ -151,23 +151,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &8800239377107459665
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5606554538880036681}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7cc77faea2d2b584e9916517c7889293, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  grabDistance: 10000
-  moveSpeed: 20
-  grabbableLayer:
-    serializedVersion: 2
-    m_Bits: 512
 --- !u!136 &8490614818878703501
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -188,10 +171,10 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.040392958
-  m_Height: 0.21867359
+  m_Height: 0.31177548
   m_Direction: 1
-  m_Center: {x: 0, y: 0.0110863475, z: 0}
---- !u!54 &1486748510831034663
+  m_Center: {x: 0, y: 0.057637263, z: 0}
+--- !u!54 &3304961035898539412
 Rigidbody:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -218,22 +201,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
---- !u!114 &-5067811113168794534
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5606554538880036681}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3ac7157b1da3b8744823d519a198a35c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  smokeZonePrefab: {fileID: 4780242577375902818, guid: f0d556aab350ac141a83f5148d801a9f, type: 3}
-  delayBeforeSmoke: 1
-  smokeDuration: 5
---- !u!114 &7745765304078633814
+--- !u!114 &5195664445333164946
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -245,3 +213,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3cc404196ea148440a1f3886b3b9faa0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1657333031576417932
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5606554538880036681}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba315001d36adad478485cb49a235dd6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rawImage: {fileID: 0}
+  pixelCamera: {fileID: 0}
+  grabbableLayer:
+    serializedVersion: 2
+    m_Bits: 512
+  grabDistance: 100
+  moveSpeed: 20
+--- !u!114 &8178194132374063601
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5606554538880036681}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 772606ac6d790014c991095122da3436, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  smokeParticlesPrefab: {fileID: 443381815807040274, guid: 3db01e9dbf0690d4c9158608b2bb2439, type: 3}

@@ -23,15 +23,12 @@ public class ResettableObject : MonoBehaviour
         initialScale = transform.localScale;
         initialActiveState = gameObject.activeSelf;
 
-        // Enregistrer la physique
         rb = GetComponent<Rigidbody>();
         col = GetComponent<Collider>();
 
-        // Enregistrer l'�tat du layer et tag (utile pour grab/d�tection)
         initialLayer = gameObject.layer;
         initialTag = gameObject.tag;
 
-        // Animation
         animator = GetComponent<Animator>();
         if (animator != null && animator.enabled)
         {
@@ -46,13 +43,13 @@ public class ResettableObject : MonoBehaviour
         transform.rotation = initialRotation;
         transform.localScale = initialScale;
         gameObject.SetActive(initialActiveState);
+
         Health health = GetComponent<Health>();
         if (health != null)
         {
             health.Revive();
         }
 
-        // Restaurer la physique
         if (rb != null)
         {
             rb.linearVelocity = Vector3.zero;
@@ -65,14 +62,12 @@ public class ResettableObject : MonoBehaviour
         if (col != null)
         {
             col.enabled = true;
-            col.isTrigger = false; // � adapter selon le design
+            col.isTrigger = false; // adapte selon besoin
         }
 
-        // Restaurer tag et layer
         gameObject.layer = initialLayer;
         gameObject.tag = initialTag;
 
-        // R�initialiser l'animation
         ResetAnimation();
     }
 
@@ -80,17 +75,8 @@ public class ResettableObject : MonoBehaviour
     {
         if (animator != null && animator.enabled)
         {
-            animator.enabled = true;
-
-            if (!string.IsNullOrEmpty(initialAnimationState))
-            {
-                animator.Play(initialAnimationState, 0, initialAnimationTime);
-            }
-            else
-            {
-                animator.Rebind();
-                animator.Update(0f);
-            }
+            animator.Rebind();
+            animator.Update(0f);
         }
     }
 
@@ -106,6 +92,7 @@ public class ResettableObject : MonoBehaviour
         }
         return "";
     }
+
     public void UpdateInitialStateToCurrent()
     {
         initialPosition = transform.position;

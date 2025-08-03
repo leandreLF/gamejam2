@@ -33,7 +33,6 @@ public class ExplosiveBarrel : ResettableObject
 
     void Start()
     {
-        // Enregistre cet objet dans la pièce courante
         if (RoomManager.Instance != null)
         {
             RoomManager.Instance.RegisterObjectInCurrentRoom(gameObject);
@@ -54,7 +53,7 @@ public class ExplosiveBarrel : ResettableObject
 
     public override void ResetObject()
     {
-        base.ResetObject(); // Reset position/rotation/velocity
+        base.ResetObject();
 
         hasExploded = false;
 
@@ -85,7 +84,10 @@ public class ExplosiveBarrel : ResettableObject
 
         ApplyExplosionEffects();
 
-        StartCoroutine(DisableAfterDelay());
+        if (gameObject.activeInHierarchy)
+            StartCoroutine(DisableAfterDelay());
+        else
+            gameObject.SetActive(false);
     }
 
     private void ApplyExplosionEffects()

@@ -12,11 +12,12 @@ GameObject:
   - component: {fileID: 8014796040853296091}
   - component: {fileID: 6170340549051016307}
   - component: {fileID: 2624753979357166283}
-  - component: {fileID: 3188348091298565178}
   - component: {fileID: 681337565717142816}
   - component: {fileID: -5324502236960320681}
   - component: {fileID: -7681203733684937869}
-  - component: {fileID: -2781557161529532656}
+  - component: {fileID: 4511234682000896564}
+  - component: {fileID: 3703721726750982275}
+  - component: {fileID: 8930619256863992447}
   m_Layer: 9
   m_Name: GasBarel_0
   m_TagString: enemy
@@ -111,7 +112,7 @@ MonoBehaviour:
   explosionForce: 0
   explosionAffectedLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 4294967295
   explosionEffect: {fileID: 0}
 --- !u!114 &2624753979357166283
 MonoBehaviour:
@@ -125,26 +126,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1261670f0d10d644aad77228086ea5fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _maxHealth: 50
+  _maxHealth: 1
   deathDelay: 1
   deathTrigger: Die
---- !u!114 &3188348091298565178
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1906889899944661791}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7cc77faea2d2b584e9916517c7889293, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  grabDistance: 10000
-  moveSpeed: 20
-  grabbableLayer:
-    serializedVersion: 2
-    m_Bits: 512
 --- !u!65 &681337565717142816
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -160,12 +144,12 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.1803396, y: 0.16968463, z: 0.20000008}
-  m_Center: {x: -0.006648673, y: -0.011538401, z: -3.3758855e-17}
+  m_Size: {x: 0.1803396, y: 0.33506715, z: 0.20000008}
+  m_Center: {x: -0.006648673, y: 0.07115293, z: -3.3758855e-17}
 --- !u!95 &-5324502236960320681
 Animator:
   serializedVersion: 7
@@ -215,7 +199,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
---- !u!114 &-2781557161529532656
+--- !u!114 &4511234682000896564
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -227,3 +211,41 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3cc404196ea148440a1f3886b3b9faa0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &3703721726750982275
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1906889899944661791}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba315001d36adad478485cb49a235dd6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rawImage: {fileID: 0}
+  pixelCamera: {fileID: 0}
+  grabbableLayer:
+    serializedVersion: 2
+    m_Bits: 512
+  grabDistance: 100
+  moveSpeed: 20
+--- !u!114 &8930619256863992447
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1906889899944661791}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba315001d36adad478485cb49a235dd6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rawImage: {fileID: 0}
+  pixelCamera: {fileID: 0}
+  grabbableLayer:
+    serializedVersion: 2
+    m_Bits: 512
+  grabDistance: 50
+  moveSpeed: 20

@@ -22,7 +22,7 @@ public class RailMover : MonoBehaviour
     [Header("Combat Settings")]
     [SerializeField] private float kickDamage = 20f;
     [SerializeField] private float kickCooldown = 1f;
-    [SerializeField] private float obstacleDetectionRange = 1f;
+    [SerializeField] private float obstacleDetectionRange = 2f;
     [SerializeField] private LayerMask obstacleLayer;
 
     private Health health;
@@ -30,6 +30,7 @@ public class RailMover : MonoBehaviour
     private int currentPointIndex = 0;
     private bool isMoving = false;
     private bool canKick = true;
+    private bool isBlocked = false;
 
     public bool IsFrozen { get; private set; } = true;
 
@@ -44,16 +45,14 @@ public class RailMover : MonoBehaviour
 
     private void FindUIElements()
     {
-        // Recherche dynamique des éléments UI
         if (readyUIContainer == null)
-        {
             readyUIContainer = GameObject.Find(readyUIContainerName);
-        }
 
         if (readyButton == null)
         {
             GameObject buttonObj = GameObject.Find(readyButtonName);
-            if (buttonObj != null) readyButton = buttonObj.GetComponent<Button>();
+            if (buttonObj != null)
+                readyButton = buttonObj.GetComponent<Button>();
         }
 
         if (readyButton != null && readyUIContainer != null)
@@ -77,8 +76,12 @@ public class RailMover : MonoBehaviour
 
         if (IsFrozen || !isMoving) return;
 
-        HandleMovement();
         HandleObstacleDetection();
+
+        if (!isBlocked)
+        {
+            HandleMovement();
+        }
     }
 
     void HandleMovement()
@@ -107,24 +110,38 @@ public class RailMover : MonoBehaviour
     {
         if (!canKick) return;
 
+        // Raycast devant pour détecter obstacle
         if (Physics.Raycast(transform.position, transform.forward, out var hit, obstacleDetectionRange, obstacleLayer))
         {
+            isBlocked = true;
+
             PerformKick();
+
             if (hit.transform.TryGetComponent<Health>(out var enemyHealth))
             {
                 enemyHealth.TakeDamage(kickDamage);
             }
+
+            canKick = false;
+            Invoke(nameof(ResetKick), kickCooldown);
+        }
+        else
+        {
+            // Pas d'obstacle, on débloque le mouvement
+            isBlocked = false;
         }
     }
 
     void PerformKick()
     {
-        canKick = false;
         animator?.SetTrigger("Kick");
-        Invoke(nameof(ResetKick), kickCooldown);
     }
 
-    void ResetKick() => canKick = true;
+    void ResetKick()
+    {
+        canKick = true;
+        // isBlocked sera remis à false automatiquement au prochain Update via HandleObstacleDetection si pas d'obstacle
+    }
 
     void OnReadyPressed()
     {
@@ -136,6 +153,7 @@ public class RailMover : MonoBehaviour
         {
             Debug.LogWarning("RoomManager instance not found!");
         }
+
         if (health != null && health.isDead)
         {
             health.ResetHealth();
@@ -163,11 +181,7 @@ public class RailMover : MonoBehaviour
         IsFrozen = true;
         isMoving = false;
 
-        if (animator != null)
-        {
-            animator.SetTrigger("Die");
-        }
-
+        animator?.SetTrigger("Die");
         UpdateAnimator();
     }
 
@@ -181,7 +195,7 @@ public class RailMover : MonoBehaviour
     {
         if (animator == null) return;
 
-        bool shouldAnimateMove = isMoving && !IsFrozen;
+        bool shouldAnimateMove = isMoving && !IsFrozen && !isBlocked;
         animator.SetBool("isMoving", shouldAnimateMove);
     }
 
@@ -196,6 +210,7 @@ public class RailMover : MonoBehaviour
     {
         IsFrozen = true;
         isMoving = false;
+        isBlocked = false;
         currentPointIndex = 0;
 
         if (railPoints.Length > 0 && railPoints[0] != null)
@@ -232,8 +247,8 @@ public class RailMover : MonoBehaviour
         {
             if (railPoints[i] == null) continue;
             Gizmos.DrawSphere(railPoints[i].position, 0.2f);
-            if (i < railPoints.Length - 1 && railPoints[i+1] != null)
-                Gizmos.DrawLine(railPoints[i].position, railPoints[i+1].position);
+            if (i < railPoints.Length - 1 && railPoints[i + 1] != null)
+                Gizmos.DrawLine(railPoints[i].position, railPoints[i + 1].position);
         }
 
         Gizmos.color = Color.red;
