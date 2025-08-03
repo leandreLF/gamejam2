@@ -10,9 +10,13 @@ GameObject:
   m_Component:
   - component: {fileID: 8227229889244484440}
   - component: {fileID: 4758499759276267653}
-  - component: {fileID: 3848249711747612562}
   - component: {fileID: 176263758462348091}
   - component: {fileID: 8577125123438947778}
+  - component: {fileID: 6903889257999440228}
+  - component: {fileID: 8470553963416435508}
+  - component: {fileID: 5444639277287371967}
+  - component: {fileID: 8851404215158078025}
+  - component: {fileID: 1562102008681681414}
   m_Layer: 9
   m_Name: barricadeHorizontal
   m_TagString: Untagged
@@ -30,7 +34,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: -2.99, y: 0.6, z: -2.06}
-  m_LocalScale: {x: 10, y: 25, z: 10}
+  m_LocalScale: {x: 10, y: 40, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -45,7 +49,7 @@ BoxCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 512
+    m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -56,23 +60,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.32787496, y: 0.17120157, z: 0.5109914}
   m_Center: {x: -0.0017032385, y: 0.00602212, z: -0.24450427}
---- !u!114 &3848249711747612562
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3953919392855279430}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7cc77faea2d2b584e9916517c7889293, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  grabDistance: 10
-  moveSpeed: 20
-  grabbableLayer:
-    serializedVersion: 2
-    m_Bits: 512
 --- !u!212 &176263758462348091
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -150,3 +137,88 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &6903889257999440228
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3953919392855279430}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cc404196ea148440a1f3886b3b9faa0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!54 &8470553963416435508
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3953919392855279430}
+  serializedVersion: 5
+  m_Mass: 10000000
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 116
+  m_CollisionDetection: 0
+--- !u!114 &5444639277287371967
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3953919392855279430}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1261670f0d10d644aad77228086ea5fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _maxHealth: 100
+  deathDelay: 1
+  deathTrigger: Die
+--- !u!114 &8851404215158078025
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3953919392855279430}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cc404196ea148440a1f3886b3b9faa0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1562102008681681414
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3953919392855279430}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba315001d36adad478485cb49a235dd6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rawImage: {fileID: 0}
+  pixelCamera: {fileID: 0}
+  grabbableLayer:
+    serializedVersion: 2
+    m_Bits: 512
+  grabDistance: 100
+  moveSpeed: 20
