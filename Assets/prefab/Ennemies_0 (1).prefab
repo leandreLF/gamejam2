@@ -126,11 +126,11 @@ MonoBehaviour:
   targetTags:
   - Player
   - enemy
-  detectionRange: 50
+  detectionRange: 20
   obstacleLayers:
     serializedVersion: 2
     m_Bits: 0
-  aimingAngle: 360
+  aimingAngle: 180
   targetRefreshRate: 0.5
   projectilePrefab: {fileID: 6952947874221999873, guid: 7c031d318f656ef47bf114b26d94d1f4, type: 3}
   firePoint: {fileID: 6934879112636683903}
