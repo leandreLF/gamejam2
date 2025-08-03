@@ -134,7 +134,7 @@ MonoBehaviour:
   targetRefreshRate: 0.5
   projectilePrefab: {fileID: 6952947874221999873, guid: 7c031d318f656ef47bf114b26d94d1f4, type: 3}
   firePoint: {fileID: 6934879112636683903}
-  fireRate: 1
+  fireRate: 0.1
   projectileSpeed: 50
   muzzleFlash: {fileID: 0}
   animator: {fileID: 0}
