@@ -8,6 +8,7 @@ public class RoomManager : MonoBehaviour
     {
         public string roomName;
         public Transform[] spawnPoints;
+        public Transform railPath; // <- Chemin de RailMover
         public List<ResettableObject> roomObjects = new List<ResettableObject>();
         public Transform roomCameraPosition;
     }
@@ -58,14 +59,27 @@ public class RoomManager : MonoBehaviour
         Transform spawn = GetCurrentRoom().spawnPoints[0];
         currentPlayer = Instantiate(playerPrefab, spawn.position, spawn.rotation);
 
-        // Récupère le PlayerRespawn et mets à jour son spawn point
         PlayerRespawn playerRespawn = currentPlayer.GetComponent<PlayerRespawn>();
         if (playerRespawn != null)
         {
             playerRespawn.SetSpawnPoint(spawn);
         }
 
+        ApplyRoomRailToPlayer(currentPlayer);
         PositionCamera();
+    }
+
+    public void ApplyRoomRailToPlayer(GameObject player)
+    {
+        var mover = player.GetComponent<RailMover>();
+        if (mover != null)
+        {
+            var path = GetCurrentRoom().railPath;
+            if (path != null)
+            {
+                mover.AssignRailFromPath(path);
+            }
+        }
     }
 
     private void PositionCamera()
@@ -87,7 +101,6 @@ public class RoomManager : MonoBehaviour
         }
 
         UIManager.Instance?.ShowReadyUI();
-
         ResetCheckpoints();
 
         var playerRespawn = currentPlayer.GetComponent<PlayerRespawn>();
@@ -95,7 +108,7 @@ public class RoomManager : MonoBehaviour
 
         if (playerRespawn != null)
         {
-            playerRespawn.SetSpawnPoint(spawn); // **Important**
+            playerRespawn.SetSpawnPoint(spawn);
             playerRespawn.ResetPlayer();
         }
         else
@@ -104,9 +117,9 @@ public class RoomManager : MonoBehaviour
             currentPlayer.transform.rotation = spawn.rotation;
         }
 
+        ApplyRoomRailToPlayer(currentPlayer);
         PositionCamera();
     }
-
 
     public void ChangeRoom(int newRoomIndex)
     {
@@ -118,6 +131,7 @@ public class RoomManager : MonoBehaviour
         currentPlayer.transform.position = spawn.position;
         currentPlayer.transform.rotation = spawn.rotation;
 
+        ApplyRoomRailToPlayer(currentPlayer);
         PositionCamera();
     }
 

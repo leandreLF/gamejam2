@@ -57,7 +57,11 @@ public class Health : MonoBehaviour
         }
 
         var railMover = GetComponent<RailMover>();
-        if (railMover != null) railMover.enabled = true;
+        if (railMover != null)
+        {
+            railMover.enabled = true;
+            railMover.ResetPlayer(); // <-- ajoute cette ligne
+        }
     }
 
     void Die()

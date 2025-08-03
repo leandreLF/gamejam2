@@ -47,16 +47,16 @@ public class ResettableObject : MonoBehaviour
         Health health = GetComponent<Health>();
         if (health != null)
         {
-            health.Revive();
+            health.ResetHealth();  // Remise � z�ro compl�te du health et �tats li�s
         }
 
         if (rb != null)
         {
-            rb.linearVelocity = Vector3.zero;
+            rb.linearVelocity = Vector3.zero;          // Correction ici
             rb.angularVelocity = Vector3.zero;
             rb.useGravity = true;
             rb.isKinematic = false;
-            rb.linearDamping = 0f;
+            rb.linearDamping = 0f;                        // Correction ici
         }
 
         if (col != null)

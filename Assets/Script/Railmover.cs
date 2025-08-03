@@ -9,9 +9,9 @@ public class RailMover : MonoBehaviour
     public static event UnityAction OnGameStarted;
 
     [Header("Rail Settings")]
-    [SerializeField] private Transform[] railPoints;
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float waypointThreshold = 0.1f;
+    private Transform[] railPoints;
 
     [Header("UI Settings")]
     [SerializeField] private string readyUIContainerName = "ReadyUIContainer";
@@ -36,6 +36,9 @@ public class RailMover : MonoBehaviour
 
     void Awake()
     {
+        // On force le LayerMask au layer "Grabbable"
+        obstacleLayer = LayerMask.GetMask("Grabbable");
+
         health = GetComponent<Health>();
         animator = GetComponent<Animator>();
 
@@ -59,22 +62,18 @@ public class RailMover : MonoBehaviour
         {
             readyButton.onClick.AddListener(OnReadyPressed);
         }
-        else
-        {
-            Debug.LogWarning("UI elements not found dynamically. Game may not function properly.");
-        }
     }
 
     void Update()
     {
-        bool shouldBeMoving = !IsFrozen && currentPointIndex < railPoints.Length;
+        bool shouldBeMoving = !IsFrozen && currentPointIndex < railPoints?.Length;
         if (isMoving != shouldBeMoving)
         {
             isMoving = shouldBeMoving;
             UpdateAnimator();
         }
 
-        if (IsFrozen || !isMoving) return;
+        if (IsFrozen || !isMoving || railPoints == null || railPoints.Length == 0) return;
 
         HandleObstacleDetection();
 
@@ -110,11 +109,10 @@ public class RailMover : MonoBehaviour
     {
         if (!canKick) return;
 
-        // Raycast devant pour détecter obstacle
-        if (Physics.Raycast(transform.position, transform.forward, out var hit, obstacleDetectionRange, obstacleLayer))
+        // Raycast vers l'avant sur layer "Grabbable"
+        if (Physics.Raycast(transform.position + Vector3.up * 0.5f, transform.forward, out var hit, obstacleDetectionRange, obstacleLayer))
         {
             isBlocked = true;
-
             PerformKick();
 
             if (hit.transform.TryGetComponent<Health>(out var enemyHealth))
@@ -127,7 +125,6 @@ public class RailMover : MonoBehaviour
         }
         else
         {
-            // Pas d'obstacle, on débloque le mouvement
             isBlocked = false;
         }
     }
@@ -140,19 +137,11 @@ public class RailMover : MonoBehaviour
     void ResetKick()
     {
         canKick = true;
-        // isBlocked sera remis à false automatiquement au prochain Update via HandleObstacleDetection si pas d'obstacle
     }
 
     void OnReadyPressed()
     {
-        if (RoomManager.Instance != null)
-        {
-            RoomManager.Instance.ResetCurrentRoom();
-        }
-        else
-        {
-            Debug.LogWarning("RoomManager instance not found!");
-        }
+        RoomManager.Instance?.ResetCurrentRoom();
 
         if (health != null && health.isDead)
         {
@@ -180,7 +169,6 @@ public class RailMover : MonoBehaviour
     {
         IsFrozen = true;
         isMoving = false;
-
         animator?.SetTrigger("Die");
         UpdateAnimator();
     }
@@ -194,7 +182,6 @@ public class RailMover : MonoBehaviour
     void UpdateAnimator()
     {
         if (animator == null) return;
-
         bool shouldAnimateMove = isMoving && !IsFrozen && !isBlocked;
         animator.SetBool("isMoving", shouldAnimateMove);
     }
@@ -213,13 +200,12 @@ public class RailMover : MonoBehaviour
         isBlocked = false;
         currentPointIndex = 0;
 
-        if (railPoints.Length > 0 && railPoints[0] != null)
+        if (railPoints != null && railPoints.Length > 0)
         {
             transform.position = railPoints[0].position;
         }
 
         FindUIElements();
-
         if (readyUIContainer != null)
         {
             readyUIContainer.SetActive(true);
@@ -239,9 +225,34 @@ public class RailMover : MonoBehaviour
         }
     }
 
+    public void AssignRailFromPath(Transform pathRoot)
+    {
+        if (pathRoot == null)
+        {
+            Debug.LogWarning("Rail path root is null");
+            return;
+        }
+
+        int count = pathRoot.childCount;
+        railPoints = new Transform[count];
+        for (int i = 0; i < count; i++)
+        {
+            railPoints[i] = pathRoot.GetChild(i);
+        }
+
+        currentPointIndex = 0;
+
+        if (railPoints.Length > 0)
+        {
+            transform.position = railPoints[0].position;
+        }
+    }
+
 #if UNITY_EDITOR
     void OnDrawGizmosSelected()
     {
+        if (railPoints == null || railPoints.Length == 0) return;
+
         Gizmos.color = Color.blue;
         for (int i = 0; i < railPoints.Length; i++)
         {
