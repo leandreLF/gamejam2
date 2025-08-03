@@ -259,12 +259,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d8483d590ee7a3439faa2d4c4b815fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  railPoints:
-  - {fileID: 855838657387005846, guid: 7e7f3b0493335a544b14208c9e7d0d4e, type: 3}
-  - {fileID: 3726596572799259051, guid: dfafa0bd986948145a813231454a3e98, type: 3}
-  - {fileID: 1596063878197647482, guid: 9f47f9c3a79f99345829ee641ea09ddd, type: 3}
-  - {fileID: 3990981549991128279, guid: c8e4a330b290df7488aae01981a135c4, type: 3}
-  moveSpeed: 3
+  moveSpeed: 2
   waypointThreshold: 2
   readyUIContainerName: ReadyUIContainer
   readyButtonName: ReadyButton

@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class SmokeExplosive : ResettableObject
 {
@@ -20,27 +21,26 @@ public class SmokeExplosive : ResettableObject
     {
         if (smokeParticlesPrefab != null)
         {
-            // Instancier la fumée
-            GameObject smokeInstance = Instantiate(smokeParticlesPrefab.gameObject, transform.position, transform.rotation);
+            // Créer une instance de la fumée à la position de l'explosion
+            GameObject smokeInstance = Instantiate(smokeParticlesPrefab.gameObject, transform.position, Quaternion.identity);
 
-            // Lancer la particule
+            // Démarrer les particules
             ParticleSystem ps = smokeInstance.GetComponent<ParticleSystem>();
             if (ps != null)
                 ps.Play();
 
-            // Ajouter ou récupérer le SmokeZone sur le prefab instancié
+            // Ajouter ou configurer la zone de blocage
             SmokeZone sz = smokeInstance.GetComponent<SmokeZone>();
             if (sz == null)
-            {
                 sz = smokeInstance.AddComponent<SmokeZone>();
-            }
 
-            sz.smokeDuration = smokeDuration;
-            sz.turretLayer = turretLayer;
+            sz.Initialize(smokeDuration, turretLayer);
 
-            StartCoroutine(DestroySmokeAfterDuration(smokeInstance, ps.main.duration));
+            // Supprimer la fumée et la zone après sa durée
+            StartCoroutine(DestroySmokeAfterDuration(smokeInstance, smokeDuration));
         }
 
+        // Désactiver l'objet explosif après l'explosion
         gameObject.SetActive(false);
     }
 
@@ -62,25 +62,69 @@ public class SmokeExplosive : ResettableObject
     }
 }
 
+
 public class SmokeZone : MonoBehaviour
 {
-    [HideInInspector] public float smokeDuration = 3f;
-    [HideInInspector] public LayerMask turretLayer;
+    private float smokeDuration;
+    private LayerMask turretLayer;
+
+    private HashSet<GameObject> affectedObjects = new HashSet<GameObject>();
+    private Dictionary<GameObject, int> originalLayers = new Dictionary<GameObject, int>();
+
+    public void Initialize(float duration, LayerMask layerMask)
+    {
+        smokeDuration = duration;
+        turretLayer = layerMask;
+
+        StartCoroutine(ZoneLifetime());
+    }
+
+    private IEnumerator ZoneLifetime()
+    {
+        yield return new WaitForSeconds(smokeDuration);
+        RestoreAllAffectedLayers();
+        Destroy(gameObject);
+    }
 
     private void OnTriggerEnter(Collider other)
     {
         if (IsInLayerMask(other.gameObject.layer, turretLayer))
         {
-            other.gameObject.layer = LayerMask.NameToLayer("Smoke");
-            StartCoroutine(RemoveSmokeEffect(other.gameObject));
+            GameObject obj = other.gameObject;
+            if (!affectedObjects.Contains(obj))
+            {
+                originalLayers[obj] = obj.layer;
+                obj.layer = LayerMask.NameToLayer("Smoke");
+                affectedObjects.Add(obj);
+            }
         }
     }
 
-    private IEnumerator RemoveSmokeEffect(GameObject turret)
+    private void OnTriggerExit(Collider other)
     {
-        yield return new WaitForSeconds(smokeDuration);
-        if (turret != null)
-            turret.layer = LayerMask.NameToLayer("Default");
+        GameObject obj = other.gameObject;
+        if (affectedObjects.Contains(obj))
+        {
+            RestoreLayer(obj);
+            affectedObjects.Remove(obj);
+        }
+    }
+
+    private void RestoreAllAffectedLayers()
+    {
+        foreach (var obj in affectedObjects)
+        {
+            RestoreLayer(obj);
+        }
+        affectedObjects.Clear();
+    }
+
+    private void RestoreLayer(GameObject obj)
+    {
+        if (obj != null && originalLayers.ContainsKey(obj))
+        {
+            obj.layer = originalLayers[obj];
+        }
     }
 
     private bool IsInLayerMask(int layer, LayerMask layerMask)

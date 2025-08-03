@@ -132,6 +132,8 @@ public class TurretEnemy : MonoBehaviour
         // Ne pas se cibler soi-même
         if (target == gameObject || target.transform.IsChildOf(transform))
             return false;
+        if (target.layer == LayerMask.NameToLayer("Smoke"))
+            return false;
 
         Health targetHealth = target.GetComponent<Health>();
         return targetHealth != null && !targetHealth.isDead;
