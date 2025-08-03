@@ -4,12 +4,12 @@ public class ResettableEnemy : ResettableObject
 {
     private Health enemyHealth;
     private EnemyController enemyController;
+    private TurretEnemy turretEnemy;
 
     protected override void ResetAnimation()
     {
         base.ResetAnimation();
 
-        // Réinitialisation spécifique aux ennemis
         if (enemyController != null)
         {
             enemyController.ResetEnemyState();
@@ -22,6 +22,7 @@ public class ResettableEnemy : ResettableObject
 
         enemyHealth = GetComponent<Health>();
         enemyController = GetComponent<EnemyController>();
+        turretEnemy = GetComponent<TurretEnemy>();
     }
 
     public override void ResetObject()
@@ -32,5 +33,11 @@ public class ResettableEnemy : ResettableObject
         {
             enemyHealth.ResetHealth();
         }
+
+        if (turretEnemy != null)
+        {
+            turretEnemy.enabled = true;
+            turretEnemy.ActivateTurret();
     }
+}
 }

@@ -94,7 +94,7 @@ public class TurretEnemy : MonoBehaviour
         }
     }
 
-    void ActivateTurret()
+    public void ActivateTurret()
     {
         isActive = true;
     }

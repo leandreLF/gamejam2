@@ -62,6 +62,10 @@ public class Health : MonoBehaviour
             railMover.enabled = true;
             railMover.ResetPlayer(); // <-- ajoute cette ligne
         }
+        foreach (var turret in GetComponentsInChildren<TurretEnemy>(true)) // (true) pour aussi récupérer les désactivés
+        {
+            turret.enabled = true;
+        }
     }
 
     void Die()
@@ -81,8 +85,15 @@ public class Health : MonoBehaviour
             animator.SetTrigger(deathTrigger);
         }
 
+        // Désactiver RailMover si présent
         var railMover = GetComponent<RailMover>();
         if (railMover != null) railMover.enabled = false;
+
+        //  Désactiver tous les TurretEnemy dans les enfants
+        foreach (var turret in GetComponentsInChildren<TurretEnemy>())
+        {
+            turret.enabled = false;
+        }
 
         OnDeath?.Invoke();
         OnAnyEntityDied?.Invoke(gameObject);
